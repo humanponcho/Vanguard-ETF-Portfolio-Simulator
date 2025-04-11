@@ -339,6 +339,9 @@ function generateSimulation() {
 
   // Update the summaryText element once
   document.getElementById('summaryText').innerHTML = summaryHTML;
+
+  // Render Monte Carlo chart
+  renderMonteCarloChart(finalValues);
 }
 
 // Set up event listeners
@@ -422,4 +425,79 @@ function calculateIncomeAndDividendTax(wages, dividends) {
     dividendTax: dividendTax.toFixed(2),
     totalTax: totalTax.toFixed(2),
   };
+}
+
+function renderMonteCarloChart(finalValues) {
+  // Clear existing chart
+  d3.select("#monteCarloChart").selectAll("*").remove();
+
+  // Set up dimensions
+  const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+  const width = 900 - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
+
+  const svg = d3.select("#monteCarloChart")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Set up X axis (final portfolio values)
+  const x = d3.scaleLinear()
+    .domain([Math.min(...finalValues), Math.max(...finalValues)]) // Range of final values
+    .range([0, width]);
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x).tickFormat(d => `£${(d / 1000).toFixed(1)}k`))
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 35)
+    .attr("fill", "#000")
+    .style("text-anchor", "middle")
+    .text("Final Portfolio Value (£)");
+
+  // Create histogram bins
+  const histogram = d3.histogram()
+    .value(d => d) // Accessor function
+    .domain(x.domain()) // Same domain as X axis
+    .thresholds(x.ticks(20)); // Number of bins
+
+  const bins = histogram(finalValues);
+
+  // Set up Y axis (frequency)
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(bins, d => d.length)]) // Max frequency
+    .range([height, 0]);
+
+  svg.append("g")
+    .call(d3.axisLeft(y))
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -45)
+    .attr("x", -height / 2)
+    .attr("fill", "#000")
+    .style("text-anchor", "middle")
+    .text("Frequency");
+
+  // Draw bars
+  svg.selectAll("rect")
+    .data(bins)
+    .enter()
+    .append("rect")
+    .attr("x", d => x(d.x0)) // Start of the bin
+    .attr("y", d => y(d.length)) // Height of the bar
+    .attr("width", d => x(d.x1) - x(d.x0) - 1) // Width of the bin
+    .attr("height", d => height - y(d.length)) // Height of the bar
+    .attr("fill", "steelblue")
+    .attr("opacity", 0.7);
+
+  // Add a title
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", -10)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .text("Monte Carlo Simulation: Distribution of Final Portfolio Values");
 }
