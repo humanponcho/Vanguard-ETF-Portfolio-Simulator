@@ -213,45 +213,29 @@ function generateSimulation() {
   document.getElementById('p25Value').textContent = `£${Math.round(p25).toLocaleString()}`;
   document.getElementById('p05Value').textContent = `£${Math.round(p05).toLocaleString()}`;
 
-  // Calculate annualized returns for each percentile
-  const totalContributions = startValue + (monthlyContribution * 12 * years);
+  // Get the inflation rate from the input
+  const inflationRate = parseFloat(document.getElementById('inflationRateInput').value) / 100 || 0;
 
-  function calculateAnnualizedReturn(finalValue, years, startValue, monthlyContribution) {
-    // Use numerical method to estimate annualized return
-    let low = -0.5;
-    let high = 0.5;
-    let mid, guess;
-
-    for (let i = 0; i < 100; i++) {
-      mid = (low + high) / 2;
-      guess = startValue * Math.pow(1 + mid, years) +
-        (monthlyContribution * 12 * ((Math.pow(1 + mid, years) - 1) / (mid || 0.001)));
-
-      if (Math.abs(guess - finalValue) < 1) {
-        return mid;
-      }
-
-      if (guess < finalValue) {
-        low = mid;
-      } else {
-        high = mid;
-      }
-    }
-
-    return mid;
+  // Calculate annualized returns for each percentile (adjusted for inflation)
+  function calculateAnnualizedReturn(finalValue, years, startValue, monthlyContribution, inflationRate) {
+    const totalContributions = startValue + (monthlyContribution * 12 * years);
+    const nominalReturn = Math.pow(finalValue / totalContributions, 1 / years) - 1;
+    const realReturn = (1 + nominalReturn) / (1 + inflationRate) - 1; // Adjust for inflation
+    return realReturn;
   }
 
-  const p95AnnReturn = calculateAnnualizedReturn(p95, years, startValue, monthlyContribution);
-  const p75AnnReturn = calculateAnnualizedReturn(p75, years, startValue, monthlyContribution);
-  const p50AnnReturn = calculateAnnualizedReturn(p50, years, startValue, monthlyContribution);
-  const p25AnnReturn = calculateAnnualizedReturn(p25, years, startValue, monthlyContribution);
-  const p05AnnReturn = calculateAnnualizedReturn(p05, years, startValue, monthlyContribution);
+  const p95AnnReturn = calculateAnnualizedReturn(p95, years, startValue, monthlyContribution, inflationRate);
+  const p75AnnReturn = calculateAnnualizedReturn(p75, years, startValue, monthlyContribution, inflationRate);
+  const p50AnnReturn = calculateAnnualizedReturn(p50, years, startValue, monthlyContribution, inflationRate);
+  const p25AnnReturn = calculateAnnualizedReturn(p25, years, startValue, monthlyContribution, inflationRate);
+  const p05AnnReturn = calculateAnnualizedReturn(p05, years, startValue, monthlyContribution, inflationRate);
 
-  document.getElementById('p95Return').textContent = `${(p95AnnReturn * 100).toFixed(1)}%`;
-  document.getElementById('p75Return').textContent = `${(p75AnnReturn * 100).toFixed(1)}%`;
-  document.getElementById('p50Return').textContent = `${(p50AnnReturn * 100).toFixed(1)}%`;
-  document.getElementById('p25Return').textContent = `${(p25AnnReturn * 100).toFixed(1)}%`;
-  document.getElementById('p05Return').textContent = `${(p05AnnReturn * 100).toFixed(1)}%`;
+  // Update the results table with real returns
+  document.getElementById('p95Return').textContent = `${(p95AnnReturn * 100).toFixed(1)}% (real)`;
+  document.getElementById('p75Return').textContent = `${(p75AnnReturn * 100).toFixed(1)}% (real)`;
+  document.getElementById('p50Return').textContent = `${(p50AnnReturn * 100).toFixed(1)}% (real)`;
+  document.getElementById('p25Return').textContent = `${(p25AnnReturn * 100).toFixed(1)}% (real)`;
+  document.getElementById('p05Return').textContent = `${(p05AnnReturn * 100).toFixed(1)}% (real)`;
 
   // Example: Calculate Capital Gains Tax for the portfolio
   const taxableIncome = 20000; // Example taxable income
@@ -307,6 +291,12 @@ function generateSimulation() {
       <li><strong>Moderate:</strong> VUAG 50%, VUCP 25%, VUTY 15%, DigiGold 5%, Cash 5%</li>
       <li><strong>Aggressive:</strong> VUAG 70%, VUCP 15%, VUTY 5%, DigiGold 5%, Cash 5%</li>
     </ul>
+  `;
+
+  document.getElementById('summaryText').innerHTML += `
+    <h3>Inflation Adjustment</h3>
+    <p>The results are adjusted for an annual inflation rate of <strong>${(inflationRate * 100).toFixed(1)}%</strong>, 
+    providing a more realistic view of real returns over time.</p>
   `;
 }
 
