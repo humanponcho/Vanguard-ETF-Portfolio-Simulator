@@ -253,11 +253,36 @@ function generateSimulation() {
   document.getElementById('p25Return').textContent = `${(p25AnnReturn * 100).toFixed(1)}%`;
   document.getElementById('p05Return').textContent = `${(p05AnnReturn * 100).toFixed(1)}%`;
 
+  // Example: Calculate Capital Gains Tax for the portfolio
+  const taxableIncome = 20000; // Example taxable income
+  const taxableGains = Math.max(0, p50 - totalContributions); // Gains are final value minus contributions
+  const capitalGainsTax = calculateCapitalGainsTax(taxableIncome, taxableGains);
+
+  // Display the Capital Gains Tax in the summary
+  document.getElementById('summaryText').innerHTML = `
+    <h3>Capital Gains Tax</h3>
+    <p>Taxable Gains: <strong>£${taxableGains.toLocaleString()}</strong></p>
+    <p>Capital Gains Tax: <strong>£${capitalGainsTax.toLocaleString()}</strong></p>
+  `;
+
+  // Example: Calculate Income and Dividend Tax
+  const wages = 29570; // Example wages
+  const dividends = 3000; // Example dividends
+  const taxResults = calculateIncomeAndDividendTax(wages, dividends);
+
+  // Display the Income and Dividend Tax in the summary
+  document.getElementById('summaryText').innerHTML = `
+    <h3>Income and Dividend Tax</h3>
+    <p>Wage Tax: <strong>£${taxResults.wageTax}</strong></p>
+    <p>Dividend Tax: <strong>£${taxResults.dividendTax}</strong></p>
+    <p>Total Tax: <strong>£${taxResults.totalTax}</strong></p>
+  `;
+
   // Update summary text
   const riskProfile = portfolioVol <= 0.06 ? "Conservative" :
     portfolioVol <= 0.12 ? "Moderate" : "Aggressive";
 
-  document.getElementById('summaryText').innerHTML = `
+  document.getElementById('summaryText').innerHTML += `
     <h3>Current Asset Allocation</h3>
     <ul>
       <li>S&P 500 UCITS ETF - Accumulating (VUAG): <strong>${(vuagWeight * 100).toFixed(1)}%</strong> - US Large Cap Equities</li>
@@ -301,9 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
   generateSimulation(); // Run the simulation
 });
 
-// Initialize
-createPieChart();
-generateSimulation();
+// // Initialize
+// createPieChart();
+// generateSimulation();
 
 document.getElementById('toggleMethodology').addEventListener('click', () => {
   const details = document.getElementById('methodologyDetails');
@@ -313,3 +338,61 @@ document.getElementById('toggleMethodology').addEventListener('click', () => {
     details.style.display = 'none';
   }
 });
+
+function calculateCapitalGainsTax(taxableIncome, taxableGains) {
+  const taxFreeAllowance = 3000; // Tax-free allowance for 2025-2026
+  const basicRateBand = 37700; // Basic rate band for 2025-2026
+  const basicRateTax = 0.18; // 18% for basic rate
+  const higherRateTax = 0.28; // 28% for higher rate
+
+  // Deduct the tax-free allowance from taxable gains
+  const gainsAfterAllowance = Math.max(0, taxableGains - taxFreeAllowance);
+
+  // Add taxable gains to taxable income
+  const combinedIncome = taxableIncome + gainsAfterAllowance;
+
+  // Calculate tax
+  let tax = 0;
+  if (combinedIncome <= basicRateBand) {
+    // All gains are taxed at the basic rate
+    tax = gainsAfterAllowance * basicRateTax;
+  } else {
+    // Split gains between basic and higher rate bands
+    const basicRateGains = Math.max(0, basicRateBand - taxableIncome);
+    const higherRateGains = gainsAfterAllowance - basicRateGains;
+
+    tax = (basicRateGains * basicRateTax) + (higherRateGains * higherRateTax);
+  }
+
+  return tax;
+}
+
+function calculateIncomeAndDividendTax(wages, dividends) {
+  const personalAllowance = 12570; // Personal Allowance for 2024-2025
+  const basicRateBand = 50270; // Upper limit of the basic rate band for 2024-2025
+  const basicRateTax = 0.20; // 20% for basic rate
+  const dividendAllowance = 500; // Tax-free dividend allowance for 2024-2025
+  const dividendBasicRateTax = 0.0875; // 8.75% for dividends in the basic rate band
+
+  // Calculate taxable income after personal allowance
+  const totalIncome = wages + dividends;
+  const taxableIncome = Math.max(0, totalIncome - personalAllowance);
+
+  // Calculate tax on wages
+  const taxableWages = Math.min(taxableIncome, wages);
+  const wageTax = taxableWages * basicRateTax;
+
+  // Calculate tax on dividends
+  const taxableDividends = Math.max(0, taxableIncome - taxableWages);
+  const dividendsAfterAllowance = Math.max(0, taxableDividends - dividendAllowance);
+  const dividendTax = dividendsAfterAllowance * dividendBasicRateTax;
+
+  // Total tax
+  const totalTax = wageTax + dividendTax;
+
+  return {
+    wageTax: wageTax.toFixed(2),
+    dividendTax: dividendTax.toFixed(2),
+    totalTax: totalTax.toFixed(2),
+  };
+}
