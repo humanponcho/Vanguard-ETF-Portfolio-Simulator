@@ -11,12 +11,14 @@
         background-color: #f4f4f4;
         color: #333;
       }
+
       h1 {
         text-align: center;
         color: #444;
       }
     </style>
-    <p style="text-align: center; color: red;">Stylesheet failed to load. Please check your connection or contact support.</p>
+    <p style="text-align: center; color: red;">Stylesheet failed to load. Please check your connection or contact
+      support.</p>
   </noscript>
 </head>
 
@@ -154,81 +156,18 @@
     <div class="summary">
       <h2>Portfolio Analysis</h2>
       <div id="summaryText">
-        <h3>Current Asset Allocation</h3>
-        <ul>
-          <li>S&P 500 UCITS ETF - Accumulating (VUAG): <strong>45.5%</strong> - US Large Cap Equities</li>
-          <li>USD Corporate Bond UCITS ETF - Distributing (VUCP): <strong>18.2%</strong> - Fixed Income Corporate</li>
-          <li>USD Treasury Bond UCITS ETF - Distributing (VUTY): <strong>15.2%</strong> - Fixed Income Government</li>
-          <li>DigiGold (Royal Mint): <strong>6.1%</strong> - Digital Gold (GBP)</li>
-          <li>Cash (GBP): <strong>15.2%</strong> - Liquid Assets</li>
-        </ul>
-
-        <h3>Risk and Return Profile</h3>
-        <p>Based on historical data and forward-looking estimates:</p>
-        <ul>
-          <li>Expected Annual Return: <strong>6.3%</strong></li>
-          <li>Expected Volatility: <strong>11.2%</strong></li>
-          <li>Risk Profile: <strong>Moderate</strong></li>
-        </ul>
-
-        <h3>Currency Risk Note</h3>
-        <p>This portfolio includes ETFs priced in <strong>USD but held in GBP</strong>. Returns may fluctuate based on
-          GBP/USD exchange rates. A weaker GBP increases portfolio value, while a stronger GBP reduces it (all else
-          equal).</p>
-
-        <h3>Hedging Options</h3>
-        <p>If you want to reduce exposure to currency swings, consider using <strong>currency-hedged share
-            classes</strong> (e.g. VUAG GBP-hedged) or adding positions in UK/GBP-denominated bond funds. These
-          typically have slightly higher costs but smooth out FX volatility.</p>
-
-        <h3>Historical FX Impact (GBP/USD)</h3>
-        <p>The GBP/USD exchange rate has varied significantly over the past decade, ranging roughly from 1.20 to 1.55. A
-          10% shift in the exchange rate can have a notable impact on the GBP value of USD-denominated assets.
-          Diversifying across currencies or time (via regular investments) can help mitigate timing risk.</p>
-
-        <h3>Recommendations</h3>
-        <p>Consider the following allocation adjustments based on your risk tolerance:</p>
-        <ul>
-          <li><strong>Conservative:</strong> Reduce VUAG to 30%, increase VUCP to 30%, VUTY to 20%, DigiGold 10%, keep
-            10% cash</li>
-          <li><strong>Moderate:</strong> VUAG 50%, VUCP 20%, VUTY 15%, DigiGold 10%, Cash 5%</li>
-          <li><strong>Aggressive:</strong> VUAG 70%, VUCP 15%, VUTY 5%, DigiGold 5%, Cash 5%</li>
-        </ul>
-        <p>For more details on how these projections are calculated, see the <a href="#methodologyDetails">Methodology
-            and Assumptions</a> section.</p>
+        <!-- Content will be dynamically updated by JavaScript -->
       </div>
     </div>
-
-    <div class="methodology">
-      <h2>Methodology and Assumptions</h2>
-      <button id="toggleMethodology">View Details</button>
-      <div id="methodologyDetails"
-        style="display: none; margin-top: 10px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
-        <h3>Assumptions</h3>
-        <ul>
-          <li><strong>Expected Returns:</strong> Based on historical averages for each asset class.</li>
-          <li><strong>Volatility:</strong> Derived from historical standard deviations of returns.</li>
-          <li><strong>Correlation:</strong> Assumes low correlation between equities and bonds, moderate correlation
-            between bonds and gold.</li>
-          <li><strong>Rebalancing:</strong> Portfolio is assumed to be rebalanced annually to maintain target
-            allocations.</li>
-          <li><strong>Inflation:</strong> Simulations do not account for inflation-adjusted returns.</li>
-        </ul>
-        <h3>Methodology</h3>
-        <p>The simulator uses a Monte Carlo simulation approach to project potential portfolio outcomes. Key steps
-          include:</p>
-        <ol>
-          <li>Randomly generating annual returns for each asset class based on expected return and volatility.</li>
-          <li>Calculating portfolio returns by weighting asset class returns according to the allocation.</li>
-          <li>Repeating the process for the specified number of simulations to generate a range of outcomes.</li>
-        </ol>
-        <p>Note: These projections are not guarantees of future performance and are subject to market risks.</p>
-      </div>
+    <button id="toggleMethodology">View Methodology</button>
+    <div id="methodologyDetails" style="display: none;">
+      <h3>Methodology and Assumptions</h3>
+      <p>Details about the methodology...</p>
     </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script>
-    
+
   </script>
 </body>
 <script src="js/sliders.js"></script>
@@ -236,4 +175,5 @@
 <script src="js/simulation.js"></script>
 <script src="js/cache.js"></script>
 <script src="js/main.js"></script>
+
 </html>

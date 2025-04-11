@@ -15,13 +15,26 @@ function generateSimulation() {
   const monthlyContribution = parseInt(document.getElementById('contributionsInput').value) || 300;
   const numSimulations = parseInt(document.getElementById('simulationsInput').value) || 200;
 
+  // Calculate total contributions
+  const totalContributions = startValue + (monthlyContribution * 12 * years);
+
   // Calculate weights
-  const totalInvested = vuag + vucp + vuty + digigold + cash; // Add DigiGold to total invested
+  const totalInvested = vuag + vucp + vuty + digigold + cash;
   const vuagWeight = vuag / totalInvested;
   const vucpWeight = vucp / totalInvested;
   const vutyWeight = vuty / totalInvested;
-  const digigoldWeight = digigold / totalInvested; // Add DigiGold weight
+  const digigoldWeight = digigold / totalInvested;
   const cashWeight = cash / totalInvested;
+
+  // Determine the risk profile
+  let riskProfile = '';
+  if (vuagWeight >= 0.7) {
+    riskProfile = 'Aggressive';
+  } else if (vuagWeight >= 0.5) {
+    riskProfile = 'Moderate';
+  } else {
+    riskProfile = 'Conservative';
+  }
 
   // Expected returns and volatility for each asset class
   const vuagReturn = 0.09;  // 8.5% for S&P 500
@@ -36,9 +49,31 @@ function generateSimulation() {
   const digigoldVol = 0.30; // 10% volatility for DigiGold
   const cashVol = 0.01; // 0.5% volatility for Cash
 
+  // Expense ratios for ETFs (as percentages)
+  const vuagExpenseRatio = 0.07 / 100; // 0.07%
+  const vucpExpenseRatio = 0.10 / 100; // 0.10%
+  const vutyExpenseRatio = 0.09 / 100; // 0.09%
+  const digigoldExpenseRatio = 0.50 / 100; // 0.50% (storage fee)
+
+  // Transaction costs (as percentages)
+  const transactionCost = 0.10 / 100; // 0.10% per transaction
+
+  // Platform fees (as percentages of total portfolio value)
+  const platformFee = 0.25 / 100; // 0.25% annually
+
+  // Calculate portfolio expected return (net of fees)
+  const portfolioReturn = (
+    vuagWeight * (vuagReturn - vuagExpenseRatio) +
+    vucpWeight * (vucpReturn - vucpExpenseRatio) +
+    vutyWeight * (vutyReturn - vutyExpenseRatio) +
+    digigoldWeight * (digigoldReturn - digigoldExpenseRatio) +
+    cashWeight * cashReturn
+  );
+
+  // Deduct platform fees from the portfolio return
+  const netPortfolioReturn = portfolioReturn - platformFee;
+
   // Calculate portfolio expected return and volatility
-  const portfolioReturn = vuagWeight * vuagReturn + vucpWeight * vucpReturn +
-    vutyWeight * vutyReturn + digigoldWeight * digigoldReturn + cashWeight * cashReturn; // Add DigiGold return
   const portfolioVol = Math.sqrt(
     Math.pow(vuagWeight * vuagVol, 2) +
     Math.pow(vucpWeight * vucpVol, 2) +
@@ -46,6 +81,9 @@ function generateSimulation() {
     Math.pow(digigoldWeight * digigoldVol, 2) + // Add DigiGold volatility
     Math.pow(cashWeight * cashVol, 2)
   );
+
+  // Apply transaction costs to monthly contributions
+  const netMonthlyContribution = monthlyContribution * (1 - transactionCost);
 
   // Set up simulation chart
   const margin = { top: 20, right: 30, bottom: 40, left: 60 };
@@ -87,10 +125,10 @@ function generateSimulation() {
       const u1 = Math.random();
       const u2 = Math.random();
       const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      const annualReturn = portfolioReturn + portfolioVol * z;
+      const annualReturn = netPortfolioReturn + portfolioVol * z;
 
-      // Apply return and add contributions
-      currentValue = currentValue * (1 + annualReturn) + (monthlyContribution * 12);
+      // Apply return, deduct platform fees, and add net contributions
+      currentValue = currentValue * (1 + annualReturn) + (netMonthlyContribution * 12);
       path.push({ x: year, y: currentValue });
     }
 
@@ -143,8 +181,8 @@ function generateSimulation() {
   // Add median line
   const medianPath = [];
   for (let i = 0; i <= years; i += Math.max(1, Math.floor(years / 5))) {
-    const medianValue = startValue * Math.pow(1 + portfolioReturn, i) +
-      (monthlyContribution * 12 * ((Math.pow(1 + portfolioReturn, i) - 1) / portfolioReturn));
+    const medianValue = startValue * Math.pow(1 + netPortfolioReturn, i) +
+      (netMonthlyContribution * 12 * ((Math.pow(1 + netPortfolioReturn, i) - 1) / netPortfolioReturn));
     medianPath.push({ x: i, y: medianValue });
   }
 
@@ -164,10 +202,10 @@ function generateSimulation() {
 
   // Add 95th percentile line
   const p95Path = [];
-  const p95Return = portfolioReturn + 1.645 * portfolioVol / Math.sqrt(years);
+  const p95Return = netPortfolioReturn + 1.645 * portfolioVol / Math.sqrt(years);
   for (let i = 0; i <= years; i += Math.max(1, Math.floor(years / 5))) {
     const p95Value = startValue * Math.pow(1 + p95Return, i) +
-      (monthlyContribution * 12 * ((Math.pow(1 + p95Return, i) - 1) / p95Return));
+      (netMonthlyContribution * 12 * ((Math.pow(1 + p95Return, i) - 1) / p95Return));
     p95Path.push({ x: i, y: p95Value });
   }
 
@@ -186,10 +224,10 @@ function generateSimulation() {
 
   // Add 5th percentile line
   const p05Path = [];
-  const p05Return = portfolioReturn - 1.645 * portfolioVol / Math.sqrt(years);
+  const p05Return = netPortfolioReturn - 1.645 * portfolioVol / Math.sqrt(years);
   for (let i = 0; i <= years; i += Math.max(1, Math.floor(years / 5))) {
     const p05Value = startValue * Math.pow(1 + p05Return, i) +
-      (monthlyContribution * 12 * ((Math.pow(1 + p05Return, i) - 1) / (p05Return || 0.001)));
+      (netMonthlyContribution * 12 * ((Math.pow(1 + p05Return, i) - 1) / (p05Return || 0.001)));
     p05Path.push({ x: i, y: p05Value });
   }
 
@@ -224,11 +262,11 @@ function generateSimulation() {
     return realReturn;
   }
 
-  const p95AnnReturn = calculateAnnualizedReturn(p95, years, startValue, monthlyContribution, inflationRate);
-  const p75AnnReturn = calculateAnnualizedReturn(p75, years, startValue, monthlyContribution, inflationRate);
-  const p50AnnReturn = calculateAnnualizedReturn(p50, years, startValue, monthlyContribution, inflationRate);
-  const p25AnnReturn = calculateAnnualizedReturn(p25, years, startValue, monthlyContribution, inflationRate);
-  const p05AnnReturn = calculateAnnualizedReturn(p05, years, startValue, monthlyContribution, inflationRate);
+  const p95AnnReturn = calculateAnnualizedReturn(p95, years, startValue, netMonthlyContribution, inflationRate);
+  const p75AnnReturn = calculateAnnualizedReturn(p75, years, startValue, netMonthlyContribution, inflationRate);
+  const p50AnnReturn = calculateAnnualizedReturn(p50, years, startValue, netMonthlyContribution, inflationRate);
+  const p25AnnReturn = calculateAnnualizedReturn(p25, years, startValue, netMonthlyContribution, inflationRate);
+  const p05AnnReturn = calculateAnnualizedReturn(p05, years, startValue, netMonthlyContribution, inflationRate);
 
   // Update the results table with real returns
   document.getElementById('p95Return').textContent = `${(p95AnnReturn * 100).toFixed(1)}% (real)`;
@@ -242,31 +280,22 @@ function generateSimulation() {
   const taxableGains = Math.max(0, p50 - totalContributions); // Gains are final value minus contributions
   const capitalGainsTax = calculateCapitalGainsTax(taxableIncome, taxableGains);
 
-  // Display the Capital Gains Tax in the summary
-  document.getElementById('summaryText').innerHTML = `
-    <h3>Capital Gains Tax</h3>
-    <p>Taxable Gains: <strong>£${taxableGains.toLocaleString()}</strong></p>
-    <p>Capital Gains Tax: <strong>£${capitalGainsTax.toLocaleString()}</strong></p>
-  `;
-
   // Example: Calculate Income and Dividend Tax
   const wages = 29570; // Example wages
   const dividends = 3000; // Example dividends
   const taxResults = calculateIncomeAndDividendTax(wages, dividends);
 
-  // Display the Income and Dividend Tax in the summary
-  document.getElementById('summaryText').innerHTML = `
+  // Consolidate all updates to summaryText
+  const summaryHTML = `
+    <h3>Capital Gains Tax</h3>
+    <p>Taxable Gains: <strong>£${taxableGains.toLocaleString()}</strong></p>
+    <p>Capital Gains Tax: <strong>£${capitalGainsTax.toLocaleString()}</strong></p>
+
     <h3>Income and Dividend Tax</h3>
     <p>Wage Tax: <strong>£${taxResults.wageTax}</strong></p>
     <p>Dividend Tax: <strong>£${taxResults.dividendTax}</strong></p>
     <p>Total Tax: <strong>£${taxResults.totalTax}</strong></p>
-  `;
 
-  // Update summary text
-  const riskProfile = portfolioVol <= 0.06 ? "Conservative" :
-    portfolioVol <= 0.12 ? "Moderate" : "Aggressive";
-
-  document.getElementById('summaryText').innerHTML += `
     <h3>Current Asset Allocation</h3>
     <ul>
       <li>S&P 500 UCITS ETF - Accumulating (VUAG): <strong>${(vuagWeight * 100).toFixed(1)}%</strong> - US Large Cap Equities</li>
@@ -275,15 +304,15 @@ function generateSimulation() {
       <li>DigiGold: <strong>${(digigoldWeight * 100).toFixed(1)}%</strong> - Digital Gold</li>
       <li>Cash: <strong>${(cashWeight * 100).toFixed(1)}%</strong> - Liquid Assets</li>
     </ul>
-    
+
     <h3>Risk and Return Profile</h3>
     <p>Based on historical data and forward-looking estimates:</p>
     <ul>
-      <li>Expected Annual Return: <strong>5.7%</strong></li>
-      <li>Expected Volatility: <strong>8.4%</strong></li>
-      <li>Risk Profile: <strong>Moderate</strong></li>
+      <li>Expected Annual Return: <strong>${(netPortfolioReturn * 100).toFixed(1)}%</strong></li>
+      <li>Expected Volatility: <strong>${(portfolioVol * 100).toFixed(1)}%</strong></li>
+      <li>Risk Profile: <strong>${riskProfile}</strong></li>
     </ul>
-    
+
     <h3>Recommendations</h3>
     <p>Consider the following allocation adjustments based on your risk tolerance:</p>
     <ul>
@@ -291,13 +320,25 @@ function generateSimulation() {
       <li><strong>Moderate:</strong> VUAG 50%, VUCP 25%, VUTY 15%, DigiGold 5%, Cash 5%</li>
       <li><strong>Aggressive:</strong> VUAG 70%, VUCP 15%, VUTY 5%, DigiGold 5%, Cash 5%</li>
     </ul>
-  `;
 
-  document.getElementById('summaryText').innerHTML += `
     <h3>Inflation Adjustment</h3>
     <p>The results are adjusted for an annual inflation rate of <strong>${(inflationRate * 100).toFixed(1)}%</strong>, 
     providing a more realistic view of real returns over time.</p>
+
+    <h3>Fee Impact</h3>
+    <p>Expense Ratios:</p>
+    <ul>
+      <li>S&P 500 UCITS ETF (VUAG): <strong>${(vuagExpenseRatio * 100).toFixed(2)}%</strong></li>
+      <li>USD Corporate Bond UCITS ETF (VUCP): <strong>${(vucpExpenseRatio * 100).toFixed(2)}%</strong></li>
+      <li>USD Treasury Bond UCITS ETF (VUTY): <strong>${(vutyExpenseRatio * 100).toFixed(2)}%</strong></li>
+      <li>DigiGold: <strong>${(digigoldExpenseRatio * 100).toFixed(2)}%</strong></li>
+    </ul>
+    <p>Transaction Costs: <strong>${(transactionCost * 100).toFixed(2)}%</strong> per transaction</p>
+    <p>Platform Fees: <strong>${(platformFee * 100).toFixed(2)}%</strong> annually</p>
   `;
+
+  // Update the summaryText element once
+  document.getElementById('summaryText').innerHTML = summaryHTML;
 }
 
 // Set up event listeners
@@ -315,10 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
   createPieChart(); // Initialize the pie chart
   generateSimulation(); // Run the simulation
 });
-
-// // Initialize
-// createPieChart();
-// generateSimulation();
 
 document.getElementById('toggleMethodology').addEventListener('click', () => {
   const details = document.getElementById('methodologyDetails');
