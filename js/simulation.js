@@ -501,3 +501,13 @@ function renderMonteCarloChart(finalValues) {
     .style("font-size", "16px")
     .text("Monte Carlo Simulation: Distribution of Final Portfolio Values");
 }
+
+function generateCorrelatedReturns(covMatrix, numAssets) {
+  const cholesky = math.cholesky(covMatrix); // Use math.js for Cholesky decomposition
+  const randomNormals = Array.from({ length: numAssets }, () => {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2); // Box-Muller
+  });
+  return math.multiply(cholesky, randomNormals); // Correlated returns
+}
