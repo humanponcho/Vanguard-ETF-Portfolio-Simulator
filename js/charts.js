@@ -28,8 +28,8 @@ function createPieChart() {
 
   const svg = d3.select("#allocationChart")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("width", "100%")
     .append("g")
     .attr("transform", `translate(${width / 4},${height / 2})`);
 

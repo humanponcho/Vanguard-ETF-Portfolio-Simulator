@@ -1,25 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vanguard ETF Portfolio Simulator</title>
-  <link rel="stylesheet" href="css/styles.css" onerror="this.onerror=null; this.href='css/fallback.css';">
-  <noscript>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        color: #333;
-      }
-
-      h1 {
-        text-align: center;
-        color: #444;
-      }
-    </style>
-    <p style="text-align: center; color: red;">Stylesheet failed to load. Please check your connection or contact
-      support.</p>
-  </noscript>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
@@ -29,7 +15,7 @@
       <h2>Investment Allocation</h2>
 
       <div class="slider-group">
-        <label for="vuagSlider">S&P 500 UCITS ETF - Accumulating (VUAG) [USD, GBP-valued]</label>
+        <label for="vuagSlider">S&amp;P 500 UCITS ETF - Accumulating (VUAG) [USD, GBP-valued]</label>
         <div class="slider-container">
           <input type="range" id="vuagSlider" min="0" max="100000" step="100" value="15000">
           <input type="number" id="vuagValue" class="slider-value" min="0" max="100000" value="15000">
@@ -80,7 +66,6 @@
 
     <div class="pie-chart-container" id="allocationChart"></div>
 
-
     <div class="controls">
       <div class="control-group">
         <label for="yearsInput">Time Horizon (years):</label>
@@ -117,9 +102,7 @@
 
     <div class="chart-container" id="simulationChart"></div>
 
-    <div class="chart-container" id="monteCarloChart">
-      <!-- Monte Carlo visualization will be rendered here -->
-    </div>
+    <div class="chart-container" id="monteCarloChart"></div>
 
     <div class="results">
       <h2>Simulation Results</h2>
@@ -131,53 +114,87 @@
         </tr>
         <tr>
           <td>95th Percentile (Optimistic)</td>
-          <td id="p95Value">£252,450</td>
-          <td id="p95Return">10.2%</td>
+          <td id="p95Value">—</td>
+          <td id="p95Return">—</td>
         </tr>
         <tr>
           <td>75th Percentile</td>
-          <td id="p75Value">£194,530</td>
-          <td id="p75Return">8.1%</td>
+          <td id="p75Value">—</td>
+          <td id="p75Return">—</td>
         </tr>
         <tr>
           <td>50th Percentile (Median)</td>
-          <td id="p50Value">£152,780</td>
-          <td id="p50Return">6.3%</td>
+          <td id="p50Value">—</td>
+          <td id="p50Return">—</td>
         </tr>
         <tr>
           <td>25th Percentile</td>
-          <td id="p25Value">£107,420</td>
-          <td id="p25Return">4.2%</td>
+          <td id="p25Value">—</td>
+          <td id="p25Return">—</td>
         </tr>
         <tr>
           <td>5th Percentile (Pessimistic)</td>
-          <td id="p05Value">£76,230</td>
-          <td id="p05Return">2.1%</td>
+          <td id="p05Value">—</td>
+          <td id="p05Return">—</td>
         </tr>
       </table>
     </div>
 
     <div class="summary">
       <h2>Portfolio Analysis</h2>
-      <div id="summaryText">
-        <!-- Content will be dynamically updated by JavaScript -->
-      </div>
+      <div id="summaryText"></div>
     </div>
+
     <button id="toggleMethodology">View Methodology</button>
     <div id="methodologyDetails" style="display: none;">
       <h3>Methodology and Assumptions</h3>
-      <p>Details about the methodology...</p>
-    </div>
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <script>
 
-  </script>
+      <h4>Monte Carlo Simulation</h4>
+      <p>The simulator runs <em>N</em> independent annual return paths. Each year's return is drawn from a normal distribution using the Box-Muller transform, parameterised by the portfolio's blended expected return and volatility. Monthly contributions are added annually, net of transaction costs.</p>
+
+      <h4>Asset Assumptions</h4>
+      <table>
+        <tr><th>Asset</th><th>Expected Return</th><th>Volatility</th><th>Expense Ratio</th><th>Type</th></tr>
+        <tr><td>VUAG (S&amp;P 500)</td><td>9.0%</td><td>18%</td><td>0.07%</td><td>Accumulating</td></tr>
+        <tr><td>VUCP (Corp Bonds)</td><td>6.0%</td><td>8%</td><td>0.10%</td><td>Distributing</td></tr>
+        <tr><td>VUTY (Treasuries)</td><td>5.0%</td><td>7%</td><td>0.09%</td><td>Distributing</td></tr>
+        <tr><td>DigiGold</td><td>10.0%</td><td>30%</td><td>0.50%</td><td>Accumulating</td></tr>
+        <tr><td>Cash</td><td>2.0%</td><td>1%</td><td>—</td><td>—</td></tr>
+      </table>
+
+      <h4>Fee Deductions</h4>
+      <p>Expense ratios are deducted from each asset's gross return before blending. A platform fee of 0.25% p.a. is then deducted from the blended portfolio return. Transaction costs of 0.10% are applied to each monthly contribution.</p>
+
+      <h4>Dividend Withholding Tax</h4>
+      <p>VUCP and VUTY are distributing ETFs. The withholding rate you set is applied as a flat reduction to their gross returns before blending (e.g. a 15% withholding rate reduces VUCP's 6.0% gross return to 5.1% net). VUAG (accumulating) is unaffected.</p>
+
+      <h4>Capital Gains Tax</h4>
+      <p>CGT is estimated at the flat rate you specify, applied to simulated gains above total contributions at the end of the horizon (median outcome). No ISA wrappers, annual CGT allowances, or tax-loss harvesting are modelled.</p>
+
+      <h4>Inflation Adjustment</h4>
+      <p>Inflation is applied as a post-hoc deflator to the displayed annualised real returns. Contributions are not inflation-adjusted in the simulation itself.</p>
+
+      <h4>Percentile Overlay Lines</h4>
+      <p>The three coloured overlay lines are analytical growth curves, not sampled paths. The median uses the net portfolio return compounded annually. The 95th/5th lines use µ ± 1.645σ/√T as a first-order approximation of the expected return distribution. The results table percentiles are computed directly from simulated final values.</p>
+
+      <h4>Limitations</h4>
+      <ul>
+        <li>Asset returns are modelled as independent — no correlation matrix is applied.</li>
+        <li>Returns are normally distributed — fat tails and tail risk are underestimated.</li>
+        <li>No sequence-of-returns risk on withdrawals is modelled.</li>
+        <li>Tax estimates are simplified flat-rate calculations and do not constitute financial advice.</li>
+      </ul>
+    </div>
+
+    <p class="disclaimer">This simulator is provided for educational purposes only and does not constitute financial advice. Past performance is not a reliable indicator of future results. The value of investments can fall as well as rise and you may get back less than you invest.</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/sliders.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/main.js"></script>
 </body>
-<script src="js/sliders.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/simulation.js"></script>
-<script src="js/cache.js"></script>
-<script src="js/main.js"></script>
 
 </html>
