@@ -81,11 +81,17 @@ function generateSimulation() {
   const width = 900 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
-  const svg = d3.select("#simulationChart")
+  const simSvgRoot = d3.select("#simulationChart")
     .append("svg")
     .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-    .attr("width", "100%")
-    .append("g")
+    .attr("width", "100%");
+
+  simSvgRoot.append("rect")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .attr("fill", "#0a0f0a");
+
+  const svg = simSvgRoot.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
   const x = d3.scaleLinear().domain([0, years]).range([0, width]);
@@ -93,10 +99,14 @@ function generateSimulation() {
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x).ticks(Math.min(years, 10)))
+    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
+    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
+    .call(g => g.select(".domain").attr("stroke", "#004f14"))
     .append("text")
     .attr("x", width / 2)
     .attr("y", 35)
-    .attr("fill", "#000")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
     .style("text-anchor", "middle")
     .text("Years");
 
@@ -133,11 +143,15 @@ function generateSimulation() {
 
   svg.append("g")
     .call(d3.axisLeft(y).tickFormat(d => `£${d / 1000}k`))
+    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
+    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
+    .call(g => g.select(".domain").attr("stroke", "#004f14"))
     .append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", -45)
     .attr("x", -height / 2)
-    .attr("fill", "#000")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
     .style("text-anchor", "middle")
     .text("Portfolio Value (£)");
 
@@ -150,9 +164,9 @@ function generateSimulation() {
     svg.append("path")
       .datum(path)
       .attr("fill", "none")
-      .attr("stroke", "steelblue")
+      .attr("stroke", "#00ff41")
       .attr("stroke-width", 0.5)
-      .attr("stroke-opacity", 0.4)
+      .attr("stroke-opacity", 0.15)
       .attr("d", line);
   });
 
@@ -167,7 +181,7 @@ function generateSimulation() {
   svg.append("path")
     .datum(medianPath)
     .attr("fill", "none")
-    .attr("stroke", "darkgreen")
+    .attr("stroke", "#00ff41")
     .attr("stroke-width", 3)
     .attr("stroke-dasharray", "5,5")
     .attr("d", line);
@@ -175,7 +189,8 @@ function generateSimulation() {
   svg.append("text")
     .attr("x", x(years) - 100)
     .attr("y", y(medianPath[medianPath.length - 1].y) - 10)
-    .attr("fill", "darkgreen")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
     .text("Median Outcome");
 
   // Analytical 95th percentile line
@@ -190,14 +205,15 @@ function generateSimulation() {
   svg.append("path")
     .datum(p95LinePath)
     .attr("fill", "none")
-    .attr("stroke", "blue")
+    .attr("stroke", "#66ff88")
     .attr("stroke-width", 2)
     .attr("d", line);
 
   svg.append("text")
     .attr("x", x(years) - 100)
     .attr("y", y(p95LinePath[p95LinePath.length - 1].y) - 10)
-    .attr("fill", "blue")
+    .attr("fill", "#66ff88")
+    .style("font-family", "'Share Tech Mono', monospace")
     .text("Optimistic (95th percentile)");
 
   // Analytical 5th percentile line
@@ -213,14 +229,15 @@ function generateSimulation() {
   svg.append("path")
     .datum(p05LinePath)
     .attr("fill", "none")
-    .attr("stroke", "red")
+    .attr("stroke", "#ff006e")
     .attr("stroke-width", 2)
     .attr("d", line);
 
   svg.append("text")
     .attr("x", x(years) - 100)
     .attr("y", y(p05LinePath[p05LinePath.length - 1].y) + 20)
-    .attr("fill", "red")
+    .attr("fill", "#ff006e")
+    .style("font-family", "'Share Tech Mono', monospace")
     .text("Pessimistic (5th percentile)");
 
   document.getElementById('p95Value').textContent = `£${Math.round(p95).toLocaleString()}`;
@@ -296,11 +313,17 @@ function renderMonteCarloChart(finalValues) {
   const width = 900 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
-  const svg = d3.select("#monteCarloChart")
+  const mcSvgRoot = d3.select("#monteCarloChart")
     .append("svg")
     .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-    .attr("width", "100%")
-    .append("g")
+    .attr("width", "100%");
+
+  mcSvgRoot.append("rect")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .attr("fill", "#0a0f0a");
+
+  const svg = mcSvgRoot.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
   const x = d3.scaleLinear()
@@ -310,10 +333,14 @@ function renderMonteCarloChart(finalValues) {
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x).tickFormat(d => `£${(d / 1000).toFixed(1)}k`))
+    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
+    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
+    .call(g => g.select(".domain").attr("stroke", "#004f14"))
     .append("text")
     .attr("x", width / 2)
     .attr("y", 35)
-    .attr("fill", "#000")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
     .style("text-anchor", "middle")
     .text("Final Portfolio Value (£)");
 
@@ -330,11 +357,15 @@ function renderMonteCarloChart(finalValues) {
 
   svg.append("g")
     .call(d3.axisLeft(y))
+    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
+    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
+    .call(g => g.select(".domain").attr("stroke", "#004f14"))
     .append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", -45)
     .attr("x", -height / 2)
-    .attr("fill", "#000")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
     .style("text-anchor", "middle")
     .text("Frequency");
 
@@ -346,13 +377,17 @@ function renderMonteCarloChart(finalValues) {
     .attr("y", d => y(d.length))
     .attr("width", d => x(d.x1) - x(d.x0) - 1)
     .attr("height", d => height - y(d.length))
-    .attr("fill", "steelblue")
-    .attr("opacity", 0.7);
+    .attr("fill", "#00ff41")
+    .attr("opacity", 0.6)
+    .attr("stroke", "#004f14")
+    .attr("stroke-width", 0.5);
 
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", -10)
     .attr("text-anchor", "middle")
-    .style("font-size", "16px")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
+    .style("font-size", "14px")
     .text("Monte Carlo Simulation: Distribution of Final Portfolio Values");
 }

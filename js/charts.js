@@ -14,11 +14,11 @@ function createPieChart() {
 
   // Data for pie chart
   const data = [
-    { label: "S&P 500 UCITS ETF - Accumulating (VUAG)", value: vuag, color: "#dc3912" },
-    { label: "USD Corporate Bond UCITS ETF - Distributing (VUCP)", value: vucp, color: "#ff9900" },
-    { label: "USD Treasury Bond UCITS ETF - Distributing (VUTY)", value: vuty, color: "#109618" },
-    { label: "DigiGold", value: digigold, color: "#0099c6" },
-    { label: "Cash", value: cash, color: "#990099" }
+    { label: "S&P 500 UCITS ETF - Accumulating (VUAG)", value: vuag, color: "#00ff41" },
+    { label: "USD Corporate Bond UCITS ETF - Distributing (VUCP)", value: vucp, color: "#00cc33" },
+    { label: "USD Treasury Bond UCITS ETF - Distributing (VUTY)", value: vuty, color: "#009922" },
+    { label: "DigiGold", value: digigold, color: "#66ff88" },
+    { label: "Cash", value: cash, color: "#ff006e" }
   ];
 
   // Set up SVG
@@ -26,11 +26,17 @@ function createPieChart() {
   const height = 250;
   const radius = Math.min(width, height) / 2;
 
-  const svg = d3.select("#allocationChart")
+  const svgRoot = d3.select("#allocationChart")
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .attr("width", "100%")
-    .append("g")
+    .attr("width", "100%");
+
+  svgRoot.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("fill", "#0a0f0a");
+
+  const svg = svgRoot.append("g")
     .attr("transform", `translate(${width / 4},${height / 2})`);
 
   // Set up pie generator
@@ -63,6 +69,9 @@ function createPieChart() {
     .attr("transform", d => `translate(${labelArc.centroid(d)})`)
     .attr("text-anchor", "middle")
     .attr("dy", ".35em")
+    .attr("fill", "#00ff41")
+    .style("font-family", "'Share Tech Mono', monospace")
+    .style("font-size", "12px")
     .text(d => d.data.value > 0 ? `${(d.data.value / total * 100).toFixed(1)}%` : "");
 
   // Add legend
@@ -83,6 +92,9 @@ function createPieChart() {
       legendRow.append("text")
         .attr("x", 30)
         .attr("y", 15)
+        .attr("fill", "#00ff41")
+        .style("font-family", "'Share Tech Mono', monospace")
+        .style("font-size", "12px")
         .text(`${d.label} (£${d.value.toLocaleString()})`);
     }
   });

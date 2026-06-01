@@ -1,11 +1,76 @@
-/* General Styles */
+/* Phosphor Green CRT Dashboard Theme */
+
+:root {
+  --bg-void: #080808;
+  --bg-panel: #0a0f0a;
+  --bg-input: #0d1a0d;
+  --green-primary: #00ff41;
+  --green-mid: #00b32c;
+  --green-dim: #004f14;
+  --green-glow: rgba(0, 255, 65, 0.25);
+  --magenta: #ff006e;
+  --magenta-glow: rgba(255, 0, 110, 0.4);
+}
+
+@keyframes crt-flicker {
+  0%   { opacity: 1; }
+  92%  { opacity: 1; }
+  93%  { opacity: 0.97; }
+  94%  { opacity: 1; }
+  96%  { opacity: 0.98; }
+  100% { opacity: 1; }
+}
+
+@keyframes panel-breathe {
+  0%, 100% { box-shadow: 0 0 12px var(--green-glow), inset 0 0 20px rgba(0, 0, 0, 0.8); }
+  50%       { box-shadow: 0 0 22px rgba(0, 255, 65, 0.45), inset 0 0 20px rgba(0, 0, 0, 0.8); }
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; /* Apple system font */
+  font-family: 'Share Tech Mono', monospace;
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f5f5f7; /* Light gray background */
-  color: #333; /* Dark gray text */
+  background-color: var(--bg-void);
+  color: var(--green-primary);
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+  animation: crt-flicker 8s infinite;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 255, 65, 0.03) 3px,
+    rgba(0, 255, 65, 0.03) 4px
+  );
+}
+
+h1 {
+  color: var(--green-primary);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px var(--green-primary), 0 0 20px var(--green-primary), 0 0 40px rgba(0, 255, 65, 0.4);
+}
+
+h2, h3, h4 {
+  color: var(--green-primary);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+  border-bottom: 1px solid var(--green-dim);
+  padding-bottom: 6px;
 }
 
 .container {
@@ -14,17 +79,19 @@ body {
   gap: 20px;
 }
 
-/* Chart Containers */
+/* Panel style shared by all cards */
 .chart-container,
-.pie-chart-container {
-  width: 100%;
-  background-color: #ffffff;
-  border: 1px solid #d1d1d6;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.pie-chart-container,
+.allocation-sliders,
+.results,
+.summary,
+.methodology {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--green-primary);
+  border-radius: 2px;
   padding: 20px;
-  overflow: hidden;
   box-sizing: border-box;
+  animation: panel-breathe 4s ease-in-out infinite;
 }
 
 .chart-container svg,
@@ -49,45 +116,53 @@ body {
 }
 
 label {
-  font-weight: 600; /* Slightly bold */
-  color: #333; /* Dark gray text */
+  font-weight: normal;
+  color: var(--green-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.5);
 }
 
 select,
 input {
-  padding: 10px;
-  border-radius: 8px; /* Rounded corners */
-  border: 1px solid #d1d1d6; /* Light gray border */
-  background-color: #ffffff; /* White background */
-  color: #333; /* Dark gray text */
+  padding: 8px 10px;
+  border-radius: 2px;
+  border: 1px solid var(--green-dim);
+  background-color: var(--bg-input);
+  color: var(--green-primary);
+  font-family: 'Share Tech Mono', monospace;
   font-size: 14px;
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.4);
 }
 
 input:focus,
 select:focus {
   outline: none;
-  border-color: #007aff; /* Apple blue focus */
-  box-shadow: 0 0 4px rgba(0, 122, 255, 0.5); /* Subtle blue glow */
+  border-color: var(--magenta);
+  box-shadow: 0 0 8px var(--magenta-glow);
 }
 
 /* Buttons */
 button {
   padding: 10px 20px;
-  background-color: #007aff; /* Apple blue */
-  color: white;
-  border: none;
-  border-radius: 8px; /* Rounded corners */
+  background-color: transparent;
+  color: var(--magenta);
+  border: 1px solid var(--magenta);
+  border-radius: 2px;
   cursor: pointer;
-  font-weight: 600;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: normal;
   font-size: 14px;
-  text-transform: capitalize;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+  text-shadow: 0 0 6px rgba(255, 0, 110, 0.6);
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+  background-color: rgba(255, 0, 110, 0.15);
+  box-shadow: 0 0 18px var(--magenta-glow);
 }
 
 /* Allocation Sliders */
@@ -95,11 +170,6 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  padding: 20px;
-  background-color: #ffffff; /* White background */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #d1d1d6; /* Light gray border */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
 .slider-group {
@@ -117,46 +187,51 @@ button:hover {
 .slider-container input[type="range"] {
   flex-grow: 1;
   -webkit-appearance: none;
-  background: #d1d1d6; /* Light gray background */
-  height: 6px;
-  border-radius: 3px;
+  background: var(--green-dim);
+  height: 4px;
+  border-radius: 0;
   outline: none;
+  border: none;
+  text-shadow: none;
+  box-shadow: none;
 }
 
 .slider-container input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #007aff; /* Apple blue thumb */
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background: var(--magenta);
+  border-radius: 0;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.7);
 }
 
 .slider-container input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: #007aff;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background: var(--magenta);
+  border-radius: 0;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.7);
+  border: none;
 }
 
 .slider-value {
   width: 60px;
   text-align: right;
-  color: #333; /* Dark gray text */
+}
+
+#totalAmount {
+  font-size: 22px;
+  color: var(--green-primary);
+  text-shadow: 0 0 8px var(--green-primary), 0 0 16px rgba(0, 255, 65, 0.5);
+  letter-spacing: 0.1em;
 }
 
 /* Results Section */
 .results {
   margin-top: 20px;
-  padding: 20px;
-  background-color: #ffffff; /* White background */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #d1d1d6; /* Light gray border */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
 table {
@@ -169,69 +244,49 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e5e5ea; /* Light gray border */
+  border-bottom: 1px solid var(--green-dim);
 }
 
 th {
-  background-color: #f5f5f7; /* Light gray header background */
-  color: #333; /* Dark gray text */
-  font-weight: 600;
+  background-color: var(--bg-input);
+  color: var(--green-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: normal;
 }
 
 td {
-  color: #333; /* Dark gray text */
+  color: var(--green-mid);
 }
 
 /* Summary Section */
 .summary {
   margin-top: 20px;
-  padding: 20px;
-  background-color: #ffffff; /* White background */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #d1d1d6; /* Light gray border */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
 /* Methodology Section */
 .methodology {
   margin-top: 20px;
-  padding: 20px;
-  background-color: #ffffff; /* White background */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #d1d1d6; /* Light gray border */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
 .methodology h2 {
-  margin-bottom: 10px;
-  color: #333; /* Dark gray text */
-}
-
-.methodology button {
-  padding: 10px 20px;
-  background-color: #007aff; /* Apple blue button */
-  color: white;
-  border: none;
-  border-radius: 8px; /* Rounded corners */
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: capitalize;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
-
-.methodology button:hover {
-  background-color: #0056b3;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 /* Disclaimer */
 .disclaimer {
-  font-size: 12px;
-  color: #888;
-  border-top: 1px solid #d1d1d6;
+  font-size: 11px;
+  color: var(--green-dim);
+  border-top: 1px solid var(--green-dim);
   padding-top: 16px;
   margin-top: 8px;
+  text-shadow: none;
+}
+
+small {
+  color: var(--green-mid);
+  text-shadow: none;
 }
 
 /* Mobile */
