@@ -92,6 +92,47 @@ The simulator uses local storage to save user inputs for investment allocations,
 
 ---
 
+## Styling
+
+The colour tokens, the chart palette and the contrast floor are documented in
+[STYLE.md](STYLE.md). Read it before you change [css/styles.css](css/styles.css)
+or any chart colour.
+
+This app uses the shared paper/phosphor token system: one `light-dark()` value
+per colour, e-ink paper in the light scheme and CRT phosphor in the dark one. It
+follows the reader's operating system appearance — there is no in-app switch.
+
+Two rules matter more than the rest:
+
+- **No hard-coded colour outside `:root`** — including in the D3 code. Charts
+  read their colours through `THEME.*` in [js/theme.js](js/theme.js), so they
+  follow the scheme like everything else.
+- **The chart series order is a safety property, not a preference.** It was
+  chosen by validating every ordering for colourblind separation in both
+  schemes. Re-ordering the slots voids that.
+
+[tools/contrast-audit.py](tools/contrast-audit.py) checks every colour against
+the surface it lands on. It must exit 0 before you commit a stylesheet change:
+
+```bash
+python3 tools/contrast-audit.py css/styles.css
+```
+
+---
+
+## Deploy to GitHub Pages
+
+A workflow at `.github/workflows/deploy.yml` publishes on every push to `master`.
+In the repo, go to **Settings → Pages → Build and deployment → Source** and choose
+**GitHub Actions**. The site is then served at
+`https://<user>.github.io/Vanguard-ETF-Portfolio-Simulator/`.
+
+There is no build step. The repository root is uploaded as-is — nothing is
+compiled, bundled or minified — so every asset path is relative and the site
+works from any subpath.
+
+---
+
 ## Known Limitations
 1. Does not adjust for inflation or tax implications.
 2. Limited asset coverage—missing options like REITs, emerging markets, or sector-specific ETFs.

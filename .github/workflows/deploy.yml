@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:   # lets you trigger a deploy manually from the Actions tab
+
+# Permissions the deploy job needs to publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time. Queue a newer push rather than cancelling the
+# running one — cancelling mid-publish can leave the live site half-updated.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # There is no build step. This is a plain static site: hand the repository
+  # root to Pages as-is. Nothing is compiled, bundled or minified.
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,4 +1,5 @@
 function generateSimulation() {
+  refreshTheme();   // resolve the tokens for the scheme that is live right now
   d3.select("#simulationChart").selectAll("*").remove();
 
   const vuag = parseInt(document.getElementById('vuagValue').value) || 0;
@@ -89,7 +90,7 @@ function generateSimulation() {
   simSvgRoot.append("rect")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-    .attr("fill", "#0a0f0a");
+    .attr("fill", THEME.panel);
 
   const svg = simSvgRoot.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -99,14 +100,14 @@ function generateSimulation() {
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x).ticks(Math.min(years, 10)))
-    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
-    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
-    .call(g => g.select(".domain").attr("stroke", "#004f14"))
+    .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
+    .call(g => g.selectAll("line").attr("stroke", THEME.g5))
+    .call(g => g.select(".domain").attr("stroke", THEME.g5))
     .append("text")
     .attr("x", width / 2)
     .attr("y", 35)
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g3)
+    .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
     .text("Years");
 
@@ -143,15 +144,15 @@ function generateSimulation() {
 
   svg.append("g")
     .call(d3.axisLeft(y).tickFormat(d => `£${d / 1000}k`))
-    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
-    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
-    .call(g => g.select(".domain").attr("stroke", "#004f14"))
+    .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
+    .call(g => g.selectAll("line").attr("stroke", THEME.g5))
+    .call(g => g.select(".domain").attr("stroke", THEME.g5))
     .append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", -45)
     .attr("x", -height / 2)
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g3)
+    .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
     .text("Portfolio Value (£)");
 
@@ -164,7 +165,9 @@ function generateSimulation() {
     svg.append("path")
       .datum(path)
       .attr("fill", "none")
-      .attr("stroke", "#00ff41")
+      // The run cloud is context, not a series. Muted ink keeps the
+      // three summary lines on top of it readable.
+      .attr("stroke", THEME.g3)
       .attr("stroke-width", 0.5)
       .attr("stroke-opacity", 0.15)
       .attr("d", line);
@@ -181,16 +184,18 @@ function generateSimulation() {
   svg.append("path")
     .datum(medianPath)
     .attr("fill", "none")
-    .attr("stroke", "#00ff41")
-    .attr("stroke-width", 3)
+    .attr("stroke", THEME.g1)
+    .attr("stroke-width", 2)
     .attr("stroke-dasharray", "5,5")
     .attr("d", line);
 
   svg.append("text")
-    .attr("x", x(years) - 100)
+    .attr("x", x(years))
+    .attr("text-anchor", "end")
+    .attr("dy", "-0.4em")
     .attr("y", y(medianPath[medianPath.length - 1].y) - 10)
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g2)
+    .style("font-family", "var(--mono)")
     .text("Median Outcome");
 
   // Analytical 95th percentile line
@@ -205,15 +210,17 @@ function generateSimulation() {
   svg.append("path")
     .datum(p95LinePath)
     .attr("fill", "none")
-    .attr("stroke", "#66ff88")
+    .attr("stroke", THEME.ok)
     .attr("stroke-width", 2)
     .attr("d", line);
 
   svg.append("text")
-    .attr("x", x(years) - 100)
+    .attr("x", x(years))
+    .attr("text-anchor", "end")
+    .attr("dy", "-0.4em")
     .attr("y", y(p95LinePath[p95LinePath.length - 1].y) - 10)
-    .attr("fill", "#66ff88")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g2)
+    .style("font-family", "var(--mono)")
     .text("Optimistic (95th percentile)");
 
   // Analytical 5th percentile line
@@ -229,15 +236,17 @@ function generateSimulation() {
   svg.append("path")
     .datum(p05LinePath)
     .attr("fill", "none")
-    .attr("stroke", "#ff006e")
+    .attr("stroke", THEME.err)
     .attr("stroke-width", 2)
     .attr("d", line);
 
   svg.append("text")
-    .attr("x", x(years) - 100)
+    .attr("x", x(years))
+    .attr("text-anchor", "end")
+    .attr("dy", "-0.4em")
     .attr("y", y(p05LinePath[p05LinePath.length - 1].y) + 20)
-    .attr("fill", "#ff006e")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g2)
+    .style("font-family", "var(--mono)")
     .text("Pessimistic (5th percentile)");
 
   document.getElementById('p95Value').textContent = `£${Math.round(p95).toLocaleString()}`;
@@ -252,11 +261,21 @@ function generateSimulation() {
     return (1 + nominal) / (1 + inflation) - 1;
   }
 
-  document.getElementById('p95Return').textContent = `${(calcRealAnnReturn(p95, years, startValue, netMonthlyContribution, inflationRate) * 100).toFixed(1)}% (real)`;
-  document.getElementById('p75Return').textContent = `${(calcRealAnnReturn(p75, years, startValue, netMonthlyContribution, inflationRate) * 100).toFixed(1)}% (real)`;
-  document.getElementById('p50Return').textContent = `${(calcRealAnnReturn(p50, years, startValue, netMonthlyContribution, inflationRate) * 100).toFixed(1)}% (real)`;
-  document.getElementById('p25Return').textContent = `${(calcRealAnnReturn(p25, years, startValue, netMonthlyContribution, inflationRate) * 100).toFixed(1)}% (real)`;
-  document.getElementById('p05Return').textContent = `${(calcRealAnnReturn(p05, years, startValue, netMonthlyContribution, inflationRate) * 100).toFixed(1)}% (real)`;
+  // A real annualised return is the one figure here that can be negative,
+  // and the sign is the whole point. Green means a gain, red a loss — the
+  // same meaning those tokens carry on the projection lines. The number
+  // keeps its own sign, so colour is never the only cue.
+  const setReturn = (id, value) => {
+    const el = document.getElementById(id);
+    el.textContent = `${(value * 100).toFixed(1)}% (real)`;
+    el.className = value < 0 ? 'figure-loss' : 'figure-gain';
+  };
+
+  setReturn('p95Return', calcRealAnnReturn(p95, years, startValue, netMonthlyContribution, inflationRate));
+  setReturn('p75Return', calcRealAnnReturn(p75, years, startValue, netMonthlyContribution, inflationRate));
+  setReturn('p50Return', calcRealAnnReturn(p50, years, startValue, netMonthlyContribution, inflationRate));
+  setReturn('p25Return', calcRealAnnReturn(p25, years, startValue, netMonthlyContribution, inflationRate));
+  setReturn('p05Return', calcRealAnnReturn(p05, years, startValue, netMonthlyContribution, inflationRate));
 
   const taxableGains = Math.max(0, p50 - totalContributions);
   const capitalGainsTax = Math.round(taxableGains * cgtRate);
@@ -321,7 +340,7 @@ function renderMonteCarloChart(finalValues) {
   mcSvgRoot.append("rect")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-    .attr("fill", "#0a0f0a");
+    .attr("fill", THEME.panel);
 
   const svg = mcSvgRoot.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -333,14 +352,14 @@ function renderMonteCarloChart(finalValues) {
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x).tickFormat(d => `£${(d / 1000).toFixed(1)}k`))
-    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
-    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
-    .call(g => g.select(".domain").attr("stroke", "#004f14"))
+    .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
+    .call(g => g.selectAll("line").attr("stroke", THEME.g5))
+    .call(g => g.select(".domain").attr("stroke", THEME.g5))
     .append("text")
     .attr("x", width / 2)
     .attr("y", 35)
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g3)
+    .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
     .text("Final Portfolio Value (£)");
 
@@ -357,15 +376,15 @@ function renderMonteCarloChart(finalValues) {
 
   svg.append("g")
     .call(d3.axisLeft(y))
-    .call(g => g.selectAll("text").attr("fill", "#00ff41").style("font-family", "'Share Tech Mono', monospace"))
-    .call(g => g.selectAll("line").attr("stroke", "#004f14"))
-    .call(g => g.select(".domain").attr("stroke", "#004f14"))
+    .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
+    .call(g => g.selectAll("line").attr("stroke", THEME.g5))
+    .call(g => g.select(".domain").attr("stroke", THEME.g5))
     .append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", -45)
     .attr("x", -height / 2)
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g3)
+    .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
     .text("Frequency");
 
@@ -375,19 +394,20 @@ function renderMonteCarloChart(finalValues) {
     .append("rect")
     .attr("x", d => x(d.x0))
     .attr("y", d => y(d.length))
-    .attr("width", d => x(d.x1) - x(d.x0) - 1)
+    .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 2))
     .attr("height", d => height - y(d.length))
-    .attr("fill", "#00ff41")
-    .attr("opacity", 0.6)
-    .attr("stroke", "#004f14")
-    .attr("stroke-width", 0.5);
+    // Single series, so one hue and no legend — the title names it.
+    // The 2px surface stroke is the gap between adjacent bars.
+    .attr("fill", THEME.accent)
+    .attr("stroke", THEME.panel)
+    .attr("stroke-width", 2);
 
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", -10)
     .attr("text-anchor", "middle")
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    .attr("fill", THEME.g3)
+    .style("font-family", "var(--mono)")
     .style("font-size", "14px")
     .text("Monte Carlo Simulation: Distribution of Final Portfolio Values");
 }

@@ -1,5 +1,6 @@
 // Create and update pie chart
 function createPieChart() {
+  refreshTheme();   // resolve the tokens for the scheme that is live right now
   // Clear existing chart
   d3.select("#allocationChart").selectAll("*").remove();
 
@@ -14,11 +15,14 @@ function createPieChart() {
 
   // Data for pie chart
   const data = [
-    { label: "S&P 500 UCITS ETF - Accumulating (VUAG)", value: vuag, color: "#00ff41" },
-    { label: "USD Corporate Bond UCITS ETF - Distributing (VUCP)", value: vucp, color: "#00cc33" },
-    { label: "USD Treasury Bond UCITS ETF - Distributing (VUTY)", value: vuty, color: "#009922" },
-    { label: "DigiGold", value: digigold, color: "#66ff88" },
-    { label: "Cash", value: cash, color: "#ff006e" }
+    // Colour follows the holding, never its size. A slider that
+    // drops a holding to zero must not repaint the survivors, so
+    // these are indexed by position in the fixed series order.
+    { label: "S&P 500 UCITS ETF - Accumulating (VUAG)", value: vuag, color: THEME.series[0] },
+    { label: "USD Corporate Bond UCITS ETF - Distributing (VUCP)", value: vucp, color: THEME.series[1] },
+    { label: "USD Treasury Bond UCITS ETF - Distributing (VUTY)", value: vuty, color: THEME.series[2] },
+    { label: "DigiGold", value: digigold, color: THEME.series[3] },
+    { label: "Cash", value: cash, color: THEME.series[4] }
   ];
 
   // Set up SVG
@@ -34,7 +38,7 @@ function createPieChart() {
   svgRoot.append("rect")
     .attr("width", width)
     .attr("height", height)
-    .attr("fill", "#0a0f0a");
+    .attr("fill", THEME.panel);
 
   const svg = svgRoot.append("g")
     .attr("transform", `translate(${width / 4},${height / 2})`);
@@ -58,7 +62,11 @@ function createPieChart() {
   // Add slices
   arcs.append("path")
     .attr("d", arc)
-    .attr("fill", d => d.data.color);
+    .attr("fill", d => d.data.color)
+    // A 2px gap in the surface colour, so adjacent slices read as
+    // two marks rather than one shape with a seam.
+    .attr("stroke", THEME.panel)
+    .attr("stroke-width", 2);
 
   // Add labels
   const labelArc = d3.arc()
@@ -69,8 +77,10 @@ function createPieChart() {
     .attr("transform", d => `translate(${labelArc.centroid(d)})`)
     .attr("text-anchor", "middle")
     .attr("dy", ".35em")
-    .attr("fill", "#00ff41")
-    .style("font-family", "'Share Tech Mono', monospace")
+    // The percentage sits ON the slice, so its ink comes from the
+    // slice, not from the scheme. See inkOn() in theme.js.
+    .attr("fill", d => inkOn(d.data.color))
+    .style("font-family", "var(--mono)")
     .style("font-size", "12px")
     .text(d => d.data.value > 0 ? `${(d.data.value / total * 100).toFixed(1)}%` : "");
 
@@ -92,8 +102,10 @@ function createPieChart() {
       legendRow.append("text")
         .attr("x", 30)
         .attr("y", 15)
-        .attr("fill", "#00ff41")
-        .style("font-family", "'Share Tech Mono', monospace")
+        // Legend text wears an ink token. The swatch beside it
+        // carries the identity — never both.
+        .attr("fill", THEME.g2)
+        .style("font-family", "var(--mono)")
         .style("font-size", "12px")
         .text(`${d.label} (£${d.value.toLocaleString()})`);
     }

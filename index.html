@@ -7,12 +7,21 @@
   <title>Vanguard ETF Portfolio Simulator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- Share Tech Mono (figures, labels), Orbitron (headings), Rajdhani (prose).
+       A <link> rather than an @import in the stylesheet: an @import blocks the
+       CSS parse until it resolves, and preconnect cannot help it. -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Inline SVG icon: avoids a 404 for /favicon.ico without shipping a file. -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
 </head>
 
 <body>
   <h1>Vanguard ETF Portfolio Simulator</h1>
+  <p class="eyebrow">Monte Carlo projection &middot; educational model</p>
   <div class="container">
     <div class="allocation-sliders">
       <h2>Investment Allocation</h2>
@@ -193,6 +202,8 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <!-- Resolves the CSS colour tokens for D3. Must load before any chart code. -->
+  <script src="js/theme.js"></script>
   <script src="js/cache.js"></script>
   <script src="js/sliders.js"></script>
   <script src="js/charts.js"></script>
