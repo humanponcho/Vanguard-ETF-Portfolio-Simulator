@@ -1,0 +1,94 @@
+# SwiftLint — https://github.com/realm/SwiftLint
+#
+# Run locally:  swiftlint lint --config ios/.swiftlint.yml ios
+# CI runs it with --strict, so a warning fails the build. That is deliberate:
+# a lint warning nobody has to fix is a lint warning everybody ignores.
+
+included:
+  - SimulationKit/Sources
+  - SimulationKit/Tests
+  - Ballast
+
+excluded:
+  - SimulationKit/.build
+
+analyzer_rules:
+  - unused_import
+
+opt_in_rules:
+  - array_init
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_first_not_nil
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fallthrough
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - joined_default_parameter
+  - last_where
+  - literal_expression_end_indentation
+  - modifier_order
+  - multiline_arguments
+  - multiline_parameters
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+disabled_rules:
+  # Doc comments in this project carry real reasoning and often run long.
+  - line_length
+
+identifier_name:
+  # `v` for volatility and `z` for a standard normal draw are the notation the
+  # maths uses. Renaming them to `volatilityValue` would be worse, not better.
+  min_length: 1
+  allowed_symbols: ["_"]
+
+type_body_length:
+  warning: 300
+  error: 400
+
+file_length:
+  warning: 500
+  error: 700
+
+function_body_length:
+  warning: 60
+  error: 100
+
+cyclomatic_complexity:
+  warning: 10
+  error: 15
+
+nesting:
+  type_level: 2
+
+force_cast: error
+force_try: error
+force_unwrapping: error
+
+custom_rules:
+  no_print:
+    name: "print() in shipping code"
+    regex: '(?<!\/\/ )\bprint\('
+    match_kinds: [identifier]
+    message: "Use a Logger, not print(). print() is invisible in a shipped app."
+    severity: warning
+
+  no_hardcoded_currency_symbol:
+    name: "Hardcoded currency symbol"
+    regex: '"[^"]*£'
+    message: "Format money with .currency(code:), not a literal £. See Stage 08."
+    severity: warning

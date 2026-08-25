@@ -1,0 +1,41 @@
+# ── macOS ───────────────────────────────────────────────────
+.DS_Store
+
+# ── Xcode ───────────────────────────────────────────────────
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Keep the shared scheme, ignore the per-user ones. Without a shared scheme
+# checked in, CI cannot build the app target.
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.pbxproj
+
+# ── Swift Package Manager ───────────────────────────────────
+.build/
+.swiftpm/
+Packages/
+# Package.resolved IS committed: CI must resolve the same dependency versions
+# a developer does. It is a lockfile, and lockfiles belong in the repo.
+
+# ── Signing and secrets ─────────────────────────────────────
+*.mobileprovision
+*.p12
+*.cer
+.env
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+
+# ── Tooling ─────────────────────────────────────────────────
+*.log
+.venv/
+__pycache__/

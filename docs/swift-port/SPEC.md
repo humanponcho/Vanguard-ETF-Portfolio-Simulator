@@ -9,23 +9,20 @@ This file records the decisions; the tutorial records the method.
 
 ---
 
-## 1. Name
+## 1. Name — decided: **Ballast**
 
 "Vanguard" cannot ship. It is a live trademark, it implies an affiliation that
 does not exist, and App Store Review guideline 5.2.1 covers exactly this.
 
-Candidates, pending an App Store search and a UK IPO / USPTO check:
+**Chosen: Ballast.** The weight that steadies a hull — what a bond and gold
+sleeve does to an equity portfolio. Bundle ID `com.humanponcho.Ballast`,
+module name `Ballast`, engine package `SimulationKit` (name-agnostic on
+purpose, so a later rename touches the app target only).
 
-| Name | Reasoning |
-|---|---|
-| **Ballast** | The weight that steadies a hull — what a bond and gold sleeve does to an equity portfolio. Check fintech collisions. |
-| **Longrun** | Names the only honest claim a Monte Carlo tool makes. |
-| **Driftline** | The percentile band *is* a drift line. No finance-brand collision. |
+Considered and rejected:
 
-Register the bundle identifier once chosen. The name becomes the Xcode project
-name, the module name and the bundle ID; renaming later is tedious.
-
----
+| Name | Why not |
+|---
 
 ## 2. Asset roster
 
