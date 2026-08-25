@@ -54,6 +54,30 @@ to be skipped. Do it even when the answer is boring.
 | **7** | It behaves like an app | 11–13 | Navigation, off-main-thread, saved scenarios; **v0.3.0** |
 | **8** | It ships | 14–16 | Accessible, native surface, submitted; **v1.0.0** |
 
+### The board
+
+Issues live at
+[github.com/humanponcho/Vanguard-ETF-Portfolio-Simulator/issues](https://github.com/humanponcho/Vanguard-ETF-Portfolio-Simulator/issues),
+grouped by a `sprint-N` label. Filter a sprint with
+`is:issue is:open label:sprint-1`.
+
+| Sprint | Issues |
+|---|---|
+| 1 · Foundations | [#1](../../issues/1) name clearance · [#2](../../issues/2) Xcode project · [#3](../../issues/3) CI green · [#4](../../issues/4) branch protection · [#5](../../issues/5) Swift spike |
+| 2 · Domain and randomness | [#6](../../issues/6) verify Stage 02 · [#7](../../issues/7) SeededGenerator · [#8](../../issues/8) Box–Muller · [#9](../../issues/9) withholding decision |
+| 3 · Engine | [#10](../../issues/10) I/O types · [#11](../../issues/11) faithful port · [#12](../../issues/12) fixtures · [#13](../../issues/13) golden test · [#14](../../issues/14) monthly steps · [#15](../../issues/15) lognormal · [#16](../../issues/16) percentiles · [#17](../../issues/17) ensemble band · [#18](../../issues/18) **v0.1.0** |
+| 4 · Correlation | [#19](../../issues/19) Cholesky · [#20](../../issues/20) correlated shocks · [#21](../../issues/21) perf baseline · [#22](../../issues/22) property tests |
+| 5 · UI foundation | [#23](../../issues/23) epic |
+| 6 · Charts | [#24](../../issues/24) epic |
+| 7 · Structure | [#25](../../issues/25) epic |
+| 8 · Ship | [#26](../../issues/26) epic |
+
+**Milestones are not set up.** GitHub milestones have to be created through the
+web UI (Issues → Milestones → New). Create eight, named for the sprint goals in
+the table above, then bulk-assign each `sprint-N` label's issues to its
+milestone. Ten minutes, and it buys you the burndown and the % complete that
+the labels alone do not give.
+
 ### Backlog depth
 
 Sprints 1–4 are broken into issues now. Sprints 5–8 exist as **epics** only.
