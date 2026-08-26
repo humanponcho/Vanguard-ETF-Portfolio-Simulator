@@ -58,8 +58,8 @@
       </div>
 
       <div class="control-group">
-        <label for="capitalGainsTaxInput">Capital Gains Tax Rate (%):</label>
-        <input type="number" id="capitalGainsTaxInput" min="0" max="50" value="10">
+        <label for="capitalGainsTaxInput">Capital Gains Tax Rate (%, long-term):</label>
+        <input type="number" id="capitalGainsTaxInput" min="0" max="50" value="20">
       </div>
 
       <div class="control-group">
@@ -151,6 +151,10 @@
 
       <h4>Capital Gains Tax</h4>
       <p>CGT is estimated at the flat rate you specify, applied to simulated gains above total contributions at the end of the horizon (median outcome). No tax-advantaged accounts (401(k), IRA), annual exemptions, or tax-loss harvesting are modelled.</p>
+      <p><strong>The rate is a long-term rate.</strong> A long-term gain is one on an asset held for more than a year, and it has its own short ladder of US federal rates: 0%, 15% or 20% by income. Above roughly $200,000 of income for a single filer, the Net Investment Income Tax adds 3.8%, which puts the federal ceiling at 23.8%. State tax sits on top of that and varies widely — several states charge nothing, and California taxes the gain as ordinary income.</p>
+      <p>The 20% default reflects how this model behaves. It realises the entire gain in a single year, and a realisation that size usually reaches the top long-term bracket and passes the Net Investment Income Tax threshold. If you would sell gradually instead, your rate would be lower.</p>
+      <p>Set a much higher rate — the ordinary income ladder reaches 37% — only if you plan to sell within a year of buying. That is a short-term gain, and it is taxed as ordinary income. At any horizon past year one, the long-term rate is the right one.</p>
+      <p>Tax is charged on the nominal gain. US cost basis is not indexed to inflation, so part of this tax falls on inflation rather than on real profit.</p>
 
       <h4>Inflation Adjustment</h4>
       <p><strong>Every figure shown on this page is in today's money.</strong> The results table, both charts and the tax estimate are all deflated at the rate you set, so a dollar shown here buys what a dollar buys today.</p>

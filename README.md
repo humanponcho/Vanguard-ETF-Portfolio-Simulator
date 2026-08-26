@@ -54,6 +54,10 @@ fund, provider or product.
 - Dividend withholding tax reduces the gross return of the distributing holdings.
 - Capital gains tax is estimated on the median outcome at a rate you set. The
   rate is applied to the gain in future money, because that is how tax works.
+  It defaults to 20%, a **long-term** rate — the model holds for years and sells
+  once, so the short-term ordinary-income rates do not apply. US federal
+  long-term rates are 0%, 15% or 20%, plus 3.8% Net Investment Income Tax for
+  higher earners, plus state tax.
 - **Every figure on the page is shown in today's money** — the results table,
   both charts and the tax estimate. The simulation runs in future money and
   deflates only at the point of display.
