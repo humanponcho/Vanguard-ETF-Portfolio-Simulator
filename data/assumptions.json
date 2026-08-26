@@ -3,35 +3,35 @@
   "assets": {
     "equity": {
       "name": "US Equity",
-      "expectedAnnualReturn": 0.09,
-      "annualVolatility": 0.18,
+      "expectedAnnualReturn": 0.07,
+      "annualVolatility": 0.17,
       "expenseRatio": 0.0007,
       "distributing": false
     },
     "corpBond": {
       "name": "Corporate Bonds",
-      "expectedAnnualReturn": 0.06,
+      "expectedAnnualReturn": 0.05,
       "annualVolatility": 0.08,
       "expenseRatio": 0.0010,
       "distributing": true
     },
     "govBond": {
       "name": "US Treasuries",
-      "expectedAnnualReturn": 0.05,
+      "expectedAnnualReturn": 0.042,
       "annualVolatility": 0.07,
       "expenseRatio": 0.0009,
       "distributing": true
     },
     "gold": {
       "name": "Gold",
-      "expectedAnnualReturn": 0.10,
-      "annualVolatility": 0.30,
+      "expectedAnnualReturn": 0.04,
+      "annualVolatility": 0.16,
       "expenseRatio": 0.0050,
       "distributing": false
     },
     "cash": {
       "name": "Cash",
-      "expectedAnnualReturn": 0.02,
+      "expectedAnnualReturn": 0.03,
       "annualVolatility": 0.01,
       "expenseRatio": 0,
       "distributing": false
@@ -41,5 +41,5 @@
     "platformFeeAnnual": 0.0025,
     "transactionCostPerContribution": 0.0010
   },
-  "notes": "Return and volatility estimates are forward-looking assumptions based on long-run historical data. They are not guaranteed and do not constitute financial advice."
+  "notes": "expectedAnnualReturn is a nominal arithmetic mean, not a compound growth rate. The compound rate is lower by about annualVolatility^2 / 2. Estimates are forward-looking, not long-run historical averages. They are not guaranteed and do not constitute financial advice."
 }

@@ -482,6 +482,16 @@ small {
   margin-bottom: 6px;
 }
 
+/* ── FOOTNOTE ──────────────────────────────────────────────── */
+/* A basis note tied to the figures directly above it. Quieter than
+   body prose, but not small print — it tells the reader what unit
+   the number is in, which changes how the number is read. */
+.summary .footnote, .methodology .footnote {
+  font-size: 13px;
+  color: var(--g3);
+  margin: -6px 0 14px;
+}
+
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   body { padding: 30px 16px 70px; }
