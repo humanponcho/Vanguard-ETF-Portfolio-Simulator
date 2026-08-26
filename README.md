@@ -135,7 +135,7 @@ python3 tools/contrast-audit.py css/styles.css
 A workflow at `.github/workflows/deploy.yml` publishes on every push to `master`.
 In the repo, go to **Settings → Pages → Build and deployment → Source** and choose
 **GitHub Actions**. The site is then served at
-`https://<user>.github.io/<repository-name>/`.
+<https://humanponcho.github.io/Ballast/>.
 
 There is no build step. The repository root is uploaded as-is — nothing is
 compiled, bundled or minified — so every asset path is relative and the site
