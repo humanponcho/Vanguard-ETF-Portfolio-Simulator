@@ -5,25 +5,18 @@ function createPieChart() {
   d3.select("#allocationChart").selectAll("*").remove();
 
   // Get values
-  const vuag = parseInt(document.getElementById('vuagValue').value) || 0;
-  const vucp = parseInt(document.getElementById('vucpValue').value) || 0;
-  const vuty = parseInt(document.getElementById('vutyValue').value) || 0;
-  const digigold = parseInt(document.getElementById('digigoldValue').value) || 0; // Include DigiGold
-  const cash = parseInt(document.getElementById('cashValue').value) || 0;
+  const allocations = readAllocations();
+  const total = totalAllocation(allocations);
 
-  const total = vuag + vucp + vuty + digigold + cash; // Add DigiGold to total
-
-  // Data for pie chart
-  const data = [
-    // Colour follows the holding, never its size. A slider that
-    // drops a holding to zero must not repaint the survivors, so
-    // these are indexed by position in the fixed series order.
-    { label: "S&P 500 UCITS ETF - Accumulating (VUAG)", value: vuag, color: THEME.series[0] },
-    { label: "USD Corporate Bond UCITS ETF - Distributing (VUCP)", value: vucp, color: THEME.series[1] },
-    { label: "USD Treasury Bond UCITS ETF - Distributing (VUTY)", value: vuty, color: THEME.series[2] },
-    { label: "DigiGold", value: digigold, color: THEME.series[3] },
-    { label: "Cash", value: cash, color: THEME.series[4] }
-  ];
+  // Data for pie chart.
+  // Colour follows the holding, never its size. A slider that drops a holding
+  // to zero must not repaint the survivors, so each slice takes the series
+  // token at its own fixed position in ASSETS.
+  const data = ASSETS.map((asset, i) => ({
+    label: asset.label,
+    value: allocations[asset.key],
+    color: THEME.series[i]
+  }));
 
   // Set up SVG
   const width = 1000;
@@ -107,7 +100,7 @@ function createPieChart() {
         .attr("fill", THEME.g2)
         .style("font-family", "var(--mono)")
         .style("font-size", "12px")
-        .text(`${d.label} (£${d.value.toLocaleString()})`);
+        .text(`${d.label} (${formatMoney(d.value)})`);
     }
   });
 }

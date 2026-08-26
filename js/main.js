@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // The sliders must exist before the cache can write into them.
+  renderSliders();
+  renderAssumptionsTable();
   loadFromCache();
-
-  connectSliderToValue('vuagSlider', 'vuagValue');
-  connectSliderToValue('vucpSlider', 'vucpValue');
-  connectSliderToValue('vutySlider', 'vutyValue');
-  connectSliderToValue('digigoldSlider', 'digigoldValue');
-  connectSliderToValue('cashSlider', 'cashValue');
+  updateTotalAmount();
 
   createPieChart();
   generateSimulation();

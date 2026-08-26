@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vanguard ETF Portfolio Simulator</title>
+  <title>Ballast</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Share Tech Mono (figures, labels), Orbitron (headings), Rajdhani (prose).
@@ -20,55 +20,18 @@
 </head>
 
 <body>
-  <h1>Vanguard ETF Portfolio Simulator</h1>
+  <h1>Ballast</h1>
   <p class="eyebrow">Monte Carlo projection &middot; educational model</p>
   <div class="container">
     <div class="allocation-sliders">
       <h2>Investment Allocation</h2>
 
-      <div class="slider-group">
-        <label for="vuagSlider">S&amp;P 500 UCITS ETF - Accumulating (VUAG) [USD, GBP-valued]</label>
-        <div class="slider-container">
-          <input type="range" id="vuagSlider" min="0" max="100000" step="100" value="15000">
-          <input type="number" id="vuagValue" class="slider-value" min="0" max="100000" value="15000">
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <label for="vucpSlider">USD Corporate Bond UCITS ETF - Distributing (VUCP)</label>
-        <div class="slider-container">
-          <input type="range" id="vucpSlider" min="0" max="100000" step="100" value="6000">
-          <input type="number" id="vucpValue" class="slider-value" min="0" max="100000" value="6000">
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <label for="vutySlider">USD Treasury Bond UCITS ETF - Distributing (VUTY)</label>
-        <div class="slider-container">
-          <input type="range" id="vutySlider" min="0" max="100000" step="100" value="5000">
-          <input type="number" id="vutyValue" class="slider-value" min="0" max="100000" value="5000">
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <label for="digigoldSlider">DigiGold [GBP]</label>
-        <div class="slider-container">
-          <input type="range" id="digigoldSlider" min="0" max="100000" step="100" value="2000">
-          <input type="number" id="digigoldValue" class="slider-value" min="0" max="100000" value="2000">
-        </div>
-        <small>Fees: Buy 0.50%, Storage 0.50% p.a., Sell 1.00%</small>
-      </div>
-
-      <div class="slider-group">
-        <label for="cashSlider">Cash (GBP)</label>
-        <div class="slider-container">
-          <input type="range" id="cashSlider" min="0" max="100000" step="100" value="5000">
-          <input type="number" id="cashValue" class="slider-value" min="0" max="100000" value="5000">
-        </div>
-      </div>
+      <!-- One .slider-group per holding, rendered from ASSETS by
+           renderSliders() in js/sliders.js. -->
+      <div id="allocationSliders"></div>
 
       <div class="total-amount">
-        Total Portfolio: <span id="totalAmount">£33,000</span>
+        Total Portfolio: <span id="totalAmount">&mdash;</span>
       </div>
 
       <div class="control-group" style="margin-top: 20px;">
@@ -85,7 +48,7 @@
       </div>
 
       <div class="control-group">
-        <label for="contributionsInput">Monthly Contribution (£):</label>
+        <label for="contributionsInput">Monthly Contribution ($):</label>
         <input type="number" id="contributionsInput" min="0" max="5000" value="300">
       </div>
 
@@ -165,23 +128,22 @@
       <p>The simulator runs <em>N</em> independent annual return paths. Each year's return is drawn from a normal distribution using the Box-Muller transform, parameterised by the portfolio's blended expected return and volatility. Monthly contributions are added annually, net of transaction costs.</p>
 
       <h4>Asset Assumptions</h4>
+      <!-- Rows rendered from ASSETS by renderAssumptionsTable() in js/sliders.js. -->
       <table>
-        <tr><th>Asset</th><th>Expected Return</th><th>Volatility</th><th>Expense Ratio</th><th>Type</th></tr>
-        <tr><td>VUAG (S&amp;P 500)</td><td>9.0%</td><td>18%</td><td>0.07%</td><td>Accumulating</td></tr>
-        <tr><td>VUCP (Corp Bonds)</td><td>6.0%</td><td>8%</td><td>0.10%</td><td>Distributing</td></tr>
-        <tr><td>VUTY (Treasuries)</td><td>5.0%</td><td>7%</td><td>0.09%</td><td>Distributing</td></tr>
-        <tr><td>DigiGold</td><td>10.0%</td><td>30%</td><td>0.50%</td><td>Accumulating</td></tr>
-        <tr><td>Cash</td><td>2.0%</td><td>1%</td><td>—</td><td>—</td></tr>
+        <thead>
+          <tr><th>Asset</th><th>Expected Return</th><th>Volatility</th><th>Expense Ratio</th><th>Type</th></tr>
+        </thead>
+        <tbody id="assumptionsTable"></tbody>
       </table>
 
       <h4>Fee Deductions</h4>
       <p>Expense ratios are deducted from each asset's gross return before blending. A platform fee of 0.25% p.a. is then deducted from the blended portfolio return. Transaction costs of 0.10% are applied to each monthly contribution.</p>
 
       <h4>Dividend Withholding Tax</h4>
-      <p>VUCP and VUTY are distributing ETFs. The withholding rate you set is applied as a flat reduction to their gross returns before blending (e.g. a 15% withholding rate reduces VUCP's 6.0% gross return to 5.1% net). VUAG (accumulating) is unaffected.</p>
+      <p>Corporate Bonds and US Treasuries are modelled as distributing holdings — they pay income out rather than reinvesting it. The withholding rate you set is applied as a flat reduction to their gross returns before blending. For example, a 15% withholding rate reduces a 6.0% gross return to 5.1% net. Accumulating holdings are unaffected.</p>
 
       <h4>Capital Gains Tax</h4>
-      <p>CGT is estimated at the flat rate you specify, applied to simulated gains above total contributions at the end of the horizon (median outcome). No ISA wrappers, annual CGT allowances, or tax-loss harvesting are modelled.</p>
+      <p>CGT is estimated at the flat rate you specify, applied to simulated gains above total contributions at the end of the horizon (median outcome). No tax-advantaged accounts (401(k), IRA), annual exemptions, or tax-loss harvesting are modelled.</p>
 
       <h4>Inflation Adjustment</h4>
       <p>Inflation is applied as a post-hoc deflator to the displayed annualised real returns. Contributions are not inflation-adjusted in the simulation itself.</p>
@@ -204,6 +166,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <!-- Resolves the CSS colour tokens for D3. Must load before any chart code. -->
   <script src="js/theme.js"></script>
+  <!-- The asset table. Must load before any script that reads ASSETS. -->
+  <script src="js/assets.js"></script>
   <script src="js/cache.js"></script>
   <script src="js/sliders.js"></script>
   <script src="js/charts.js"></script>

@@ -1,28 +1,20 @@
 function saveToCache() {
-  const vuag = parseInt(document.getElementById('vuagValue').value) || 0;
-  const vucp = parseInt(document.getElementById('vucpValue').value) || 0;
-  const vuty = parseInt(document.getElementById('vutyValue').value) || 0;
-  const digigold = parseInt(document.getElementById('digigoldValue').value) || 0;
-  const cash = parseInt(document.getElementById('cashValue').value) || 0;
-
-  const cachedValues = { vuag, vucp, vuty, digigold, cash };
-  localStorage.setItem('portfolioValues', JSON.stringify(cachedValues));
+  localStorage.setItem(ALLOCATION_STORAGE_KEY, JSON.stringify(readAllocations()));
 }
 
 function loadFromCache() {
-  const cachedValues = JSON.parse(localStorage.getItem('portfolioValues'));
+  const cachedValues = JSON.parse(localStorage.getItem(ALLOCATION_STORAGE_KEY));
 
   if (cachedValues) {
-    document.getElementById('vuagValue').value = cachedValues.vuag;
-    document.getElementById('vuagSlider').value = cachedValues.vuag;
-    document.getElementById('vucpValue').value = cachedValues.vucp;
-    document.getElementById('vucpSlider').value = cachedValues.vucp;
-    document.getElementById('vutyValue').value = cachedValues.vuty;
-    document.getElementById('vutySlider').value = cachedValues.vuty;
-    document.getElementById('digigoldValue').value = cachedValues.digigold;
-    document.getElementById('digigoldSlider').value = cachedValues.digigold;
-    document.getElementById('cashValue').value = cachedValues.cash;
-    document.getElementById('cashSlider').value = cachedValues.cash;
+    ASSETS.forEach(asset => {
+      const cached = cachedValues[asset.key];
+      // A holding added to ASSETS after this cache was written has no stored
+      // value. Leave its default in place rather than writing undefined.
+      if (typeof cached !== 'number') return;
+
+      document.getElementById(valueId(asset.key)).value = cached;
+      document.getElementById(sliderId(asset.key)).value = cached;
+    });
 
     updateTotalAmount();
   }

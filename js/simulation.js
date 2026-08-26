@@ -2,13 +2,9 @@ function generateSimulation() {
   refreshTheme();   // resolve the tokens for the scheme that is live right now
   d3.select("#simulationChart").selectAll("*").remove();
 
-  const vuag = parseInt(document.getElementById('vuagValue').value) || 0;
-  const vucp = parseInt(document.getElementById('vucpValue').value) || 0;
-  const vuty = parseInt(document.getElementById('vutyValue').value) || 0;
-  const digigold = parseInt(document.getElementById('digigoldValue').value) || 0;
-  const cash = parseInt(document.getElementById('cashValue').value) || 0;
+  const allocations = readAllocations();
 
-  const startValue = vuag + vucp + vuty + digigold + cash;
+  const startValue = totalAllocation(allocations);
   const years = parseInt(document.getElementById('yearsInput').value) || 20;
   const monthlyContribution = parseInt(document.getElementById('contributionsInput').value) || 300;
   const numSimulations = parseInt(document.getElementById('simulationsInput').value) || 200;
@@ -23,57 +19,39 @@ function generateSimulation() {
     return;
   }
 
-  const vuagWeight = vuag / startValue;
-  const vucpWeight = vucp / startValue;
-  const vutyWeight = vuty / startValue;
-  const digigoldWeight = digigold / startValue;
-  const cashWeight = cash / startValue;
+  const weights = {};
+  ASSETS.forEach(asset => {
+    weights[asset.key] = allocations[asset.key] / startValue;
+  });
+
+  // The risk label tracks the growth holding's share of the portfolio.
+  const riskDriver = ASSETS.find(asset => asset.riskDriver);
+  const riskWeight = riskDriver ? weights[riskDriver.key] : 0;
 
   let riskProfile;
-  if (vuagWeight >= 0.7) {
+  if (riskWeight >= 0.7) {
     riskProfile = 'Aggressive';
-  } else if (vuagWeight >= 0.5) {
+  } else if (riskWeight >= 0.5) {
     riskProfile = 'Moderate';
   } else {
     riskProfile = 'Conservative';
   }
 
-  // VUCP and VUTY are distributing ETFs — dividend withholding tax reduces their effective return
-  const vuagReturn = 0.09;
-  const vucpReturn = 0.06 * (1 - dividendWithholdingRate);
-  const vutyReturn = 0.05 * (1 - dividendWithholdingRate);
-  const digigoldReturn = 0.10;
-  const cashReturn = 0.02;
+  const transactionCost = FEES.transactionCostPerContribution;
+  const platformFee = FEES.platformFeeAnnual;
 
-  const vuagVol = 0.18;
-  const vucpVol = 0.08;
-  const vutyVol = 0.07;
-  const digigoldVol = 0.30;
-  const cashVol = 0.01;
-
-  const vuagExpenseRatio = 0.0007;
-  const vucpExpenseRatio = 0.0010;
-  const vutyExpenseRatio = 0.0009;
-  const digigoldExpenseRatio = 0.0050;
-  const transactionCost = 0.0010;
-  const platformFee = 0.0025;
-
-  const portfolioReturn = (
-    vuagWeight * (vuagReturn - vuagExpenseRatio) +
-    vucpWeight * (vucpReturn - vucpExpenseRatio) +
-    vutyWeight * (vutyReturn - vutyExpenseRatio) +
-    digigoldWeight * (digigoldReturn - digigoldExpenseRatio) +
-    cashWeight * cashReturn
+  // Each holding contributes its net return, weighted by its share.
+  const portfolioReturn = ASSETS.reduce(
+    (sum, asset) => sum + weights[asset.key] * netAssetReturn(asset, dividendWithholdingRate),
+    0
   );
 
   const netPortfolioReturn = portfolioReturn - platformFee;
 
+  // Holdings are assumed uncorrelated, so the weighted variances simply add.
+  // See the Limitations note in the methodology section.
   const portfolioVol = Math.sqrt(
-    Math.pow(vuagWeight * vuagVol, 2) +
-    Math.pow(vucpWeight * vucpVol, 2) +
-    Math.pow(vutyWeight * vutyVol, 2) +
-    Math.pow(digigoldWeight * digigoldVol, 2) +
-    Math.pow(cashWeight * cashVol, 2)
+    ASSETS.reduce((sum, asset) => sum + Math.pow(weights[asset.key] * asset.volatility, 2), 0)
   );
 
   const netMonthlyContribution = monthlyContribution * (1 - transactionCost);
@@ -143,7 +121,7 @@ function generateSimulation() {
   const y = d3.scaleLinear().domain([0, maxY]).range([height, 0]);
 
   svg.append("g")
-    .call(d3.axisLeft(y).tickFormat(d => `£${d / 1000}k`))
+    .call(d3.axisLeft(y).tickFormat(d => formatThousands(d)))
     .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
     .call(g => g.selectAll("line").attr("stroke", THEME.g5))
     .call(g => g.select(".domain").attr("stroke", THEME.g5))
@@ -154,7 +132,7 @@ function generateSimulation() {
     .attr("fill", THEME.g3)
     .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
-    .text("Portfolio Value (£)");
+    .text(`Portfolio Value (${CURRENCY.symbol})`);
 
   const line = d3.line()
     .x(d => x(d.x))
@@ -249,11 +227,11 @@ function generateSimulation() {
     .style("font-family", "var(--mono)")
     .text("Pessimistic (5th percentile)");
 
-  document.getElementById('p95Value').textContent = `£${Math.round(p95).toLocaleString()}`;
-  document.getElementById('p75Value').textContent = `£${Math.round(p75).toLocaleString()}`;
-  document.getElementById('p50Value').textContent = `£${Math.round(p50).toLocaleString()}`;
-  document.getElementById('p25Value').textContent = `£${Math.round(p25).toLocaleString()}`;
-  document.getElementById('p05Value').textContent = `£${Math.round(p05).toLocaleString()}`;
+  document.getElementById('p95Value').textContent = formatMoney(p95);
+  document.getElementById('p75Value').textContent = formatMoney(p75);
+  document.getElementById('p50Value').textContent = formatMoney(p50);
+  document.getElementById('p25Value').textContent = formatMoney(p25);
+  document.getElementById('p05Value').textContent = formatMoney(p05);
 
   function calcRealAnnReturn(finalValue, yrs, start, monthlyC, inflation) {
     const total = start + (monthlyC * 12 * yrs);
@@ -280,19 +258,32 @@ function generateSimulation() {
   const taxableGains = Math.max(0, p50 - totalContributions);
   const capitalGainsTax = Math.round(taxableGains * cgtRate);
 
+  const allocationList = ASSETS
+    .map(a => `<li>${a.label}: <strong>${(weights[a.key] * 100).toFixed(1)}%</strong></li>`)
+    .join('\n      ');
+
+  const presetList = PRESETS
+    .map(p => {
+      const mix = ASSETS.map(a => `${a.label} ${p.weights[a.key]}%`).join(', ');
+      return `<li><strong>${p.name}:</strong> ${mix}</li>`;
+    })
+    .join('\n      ');
+
+  // Only holdings that actually carry a running cost earn a line here.
+  const feeList = ASSETS
+    .filter(a => a.expenseRatio > 0)
+    .map(a => `<li>${a.label} expense ratio: <strong>${(a.expenseRatio * 100).toFixed(2)}%</strong></li>`)
+    .join('\n      ');
+
   document.getElementById('summaryText').innerHTML = `
     <h3>Capital Gains Tax Estimate</h3>
     <p>Based on median outcome at a <strong>${(cgtRate * 100).toFixed(0)}%</strong> CGT rate:</p>
-    <p>Estimated gains: <strong>£${Math.round(taxableGains).toLocaleString()}</strong></p>
-    <p>Estimated CGT: <strong>£${capitalGainsTax.toLocaleString()}</strong></p>
+    <p>Estimated gains: <strong>${formatMoney(taxableGains)}</strong></p>
+    <p>Estimated CGT: <strong>${formatMoney(capitalGainsTax)}</strong></p>
 
     <h3>Current Asset Allocation</h3>
     <ul>
-      <li>S&P 500 UCITS ETF (VUAG): <strong>${(vuagWeight * 100).toFixed(1)}%</strong></li>
-      <li>USD Corporate Bond UCITS ETF (VUCP): <strong>${(vucpWeight * 100).toFixed(1)}%</strong></li>
-      <li>USD Treasury Bond UCITS ETF (VUTY): <strong>${(vutyWeight * 100).toFixed(1)}%</strong></li>
-      <li>DigiGold: <strong>${(digigoldWeight * 100).toFixed(1)}%</strong></li>
-      <li>Cash: <strong>${(cashWeight * 100).toFixed(1)}%</strong></li>
+      ${allocationList}
     </ul>
 
     <h3>Risk and Return Profile</h3>
@@ -304,19 +295,14 @@ function generateSimulation() {
       <li>Risk Profile: <strong>${riskProfile}</strong></li>
     </ul>
 
-    <h3>Recommendations</h3>
+    <h3>Illustrative Allocations</h3>
     <ul>
-      <li><strong>Conservative:</strong> VUAG 30%, VUCP 30%, VUTY 20%, DigiGold 10%, Cash 10%</li>
-      <li><strong>Moderate:</strong> VUAG 50%, VUCP 25%, VUTY 15%, DigiGold 5%, Cash 5%</li>
-      <li><strong>Aggressive:</strong> VUAG 70%, VUCP 15%, VUTY 5%, DigiGold 5%, Cash 5%</li>
+      ${presetList}
     </ul>
 
     <h3>Fee Impact</h3>
     <ul>
-      <li>VUAG expense ratio: <strong>${(vuagExpenseRatio * 100).toFixed(2)}%</strong></li>
-      <li>VUCP expense ratio: <strong>${(vucpExpenseRatio * 100).toFixed(2)}%</strong></li>
-      <li>VUTY expense ratio: <strong>${(vutyExpenseRatio * 100).toFixed(2)}%</strong></li>
-      <li>DigiGold storage fee: <strong>${(digigoldExpenseRatio * 100).toFixed(2)}%</strong></li>
+      ${feeList}
       <li>Platform fee: <strong>${(platformFee * 100).toFixed(2)}%</strong> p.a.</li>
       <li>Transaction cost: <strong>${(transactionCost * 100).toFixed(2)}%</strong> per contribution</li>
     </ul>
@@ -351,7 +337,7 @@ function renderMonteCarloChart(finalValues) {
 
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x).tickFormat(d => `£${(d / 1000).toFixed(1)}k`))
+    .call(d3.axisBottom(x).tickFormat(d => formatThousands(d, 1)))
     .call(g => g.selectAll("text").attr("fill", THEME.g4).style("font-family", "var(--mono)"))
     .call(g => g.selectAll("line").attr("stroke", THEME.g5))
     .call(g => g.select(".domain").attr("stroke", THEME.g5))
@@ -361,7 +347,7 @@ function renderMonteCarloChart(finalValues) {
     .attr("fill", THEME.g3)
     .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
-    .text("Final Portfolio Value (£)");
+    .text(`Final Portfolio Value (${CURRENCY.symbol})`);
 
   const histogram = d3.histogram()
     .value(d => d)
