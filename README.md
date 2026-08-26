@@ -1,28 +1,36 @@
-# README: Vanguard ETF Portfolio Simulator
+# README: Ballast
 
 ## Overview
-The **Vanguard ETF Portfolio Simulator** is an interactive web-based tool designed to help investors simulate and optimize their portfolio allocations across various asset classes. It provides insights into potential portfolio growth, risk levels, and currency exposure over customizable time horizons.
+**Ballast** is an interactive web-based tool designed to help investors simulate and optimize their portfolio allocations across generic asset classes. It provides insights into potential portfolio growth, risk levels, and currency exposure over customizable time horizons.
 
 ---
 
 ## Features
 
 ### **1. Investment Allocation**
-- Allocate funds across five asset categories:
-  - **S&P 500 UCITS ETF (VUAG)**: US large-cap equities.
-  - **USD Corporate Bond UCITS ETF (VUCP)**: Fixed income corporate bonds.
-  - **USD Treasury Bond UCITS ETF (VUTY)**: Fixed income government bonds.
-  - **DigiGold**: GBP-denominated digital gold.
-  - **Cash**: Liquid GBP assets.
+- Allocate funds across five asset classes:
+  - **US Equity**: US large-cap shares.
+  - **Corporate Bonds**: Fixed income issued by companies.
+  - **US Treasuries**: Fixed income issued by the US government.
+  - **Gold**: A non-yielding store of value.
+  - **Cash**: Liquid deposits.
 - Use sliders or numeric inputs to dynamically adjust allocations.
+
+The five holdings are defined in one place, [js/assets.js](js/assets.js). It sets
+each holding's label, expected return, volatility, expense ratio and default
+amount, and it drives the sliders, the pie chart, the methodology table and the
+blended maths. To change a holding, edit that file only.
+
+The asset classes are generic by design. They model categories, not any named
+fund, provider or product.
 
 ### **2. Portfolio Simulation**
 - Customize simulation parameters:
   - **Time Horizon**: Choose between 1–40 years.
-  - **Monthly Contributions**: Specify monthly investment amounts in GBP.
+  - **Monthly Contributions**: Specify monthly investment amounts in USD.
   - **Number of Simulations**: Run between 50–1000 Monte Carlo simulations.
 - View results for optimistic, median, and pessimistic scenarios:
-  - Final portfolio value (GBP).
+  - Final portfolio value (USD).
   - Annualized returns.
 
 ### **3. Visualization Tools**
@@ -30,14 +38,16 @@ The **Vanguard ETF Portfolio Simulator** is an interactive web-based tool design
 - **Simulation Chart**: Analyze projected portfolio growth over time.
 
 ### **4. Risk and Return Analysis**
-- Historical data estimates:
-  - Expected annual return: **6.3%**.
-  - Expected volatility: **11.2%**.
-- Categorizes portfolio risk as "Moderate."
+- With the default allocation and a 15% withholding rate, the model reports:
+  - Expected annual return, net of fees and withholding: **6.2%**.
+  - Expected volatility: **8.6%**.
+- Categorizes portfolio risk from the US Equity share: 70% or more is
+  "Aggressive", 50% or more is "Moderate", below that is "Conservative".
 
-### **5. Currency Risk Insights**
-- Highlights the impact of GBP/USD exchange rate fluctuations on USD-denominated assets.
-- Provides hedging recommendations for reducing FX volatility.
+### **5. Tax and Inflation**
+- Dividend withholding tax reduces the gross return of the distributing holdings.
+- Capital gains tax is estimated on the median outcome at a rate you set.
+- Displayed annualised returns are deflated to real terms.
 
 ---
 
@@ -49,7 +59,7 @@ The **Vanguard ETF Portfolio Simulator** is an interactive web-based tool design
 
 ### **Step 2: Set Simulation Parameters**
 1. Enter your preferred investment time horizon (years).
-2. Specify monthly contributions in GBP.
+2. Specify monthly contributions in USD.
 3. Choose the number of simulations to run.
 
 ### **Step 3: Run Simulation**
@@ -67,16 +77,16 @@ The **Vanguard ETF Portfolio Simulator** is an interactive web-based tool design
 ### Risk Profiles
 Adjust allocations based on your risk tolerance:
 - **Conservative**:
-  - Lower equity exposure (e.g., VUAG at 30%).
-  - Higher bond allocation (e.g., VUCP at 30%, VUTY at 20%).
+  - Lower equity exposure (US Equity at 30%).
+  - Higher bond allocation (Corporate Bonds at 30%, US Treasuries at 20%).
 - **Moderate**:
-  - Balanced equity and bond exposure (e.g., VUAG at 50%, VUCP at 20%, VUTY at 15%).
+  - Balanced equity and bond exposure (US Equity at 50%, Corporate Bonds at
+    25%, US Treasuries at 15%).
 - **Aggressive**:
-  - Higher equity exposure (e.g., VUAG at 70%).
+  - Higher equity exposure (US Equity at 70%).
 
-### Currency Hedging
-To reduce GBP/USD exchange rate risks:
-- Consider currency-hedged ETFs or UK/GBP-denominated bond funds.
+These three mixes are defined as `PRESETS` in [js/assets.js](js/assets.js) and
+are shown in the page's analysis panel.
 
 ---
 
@@ -125,7 +135,7 @@ python3 tools/contrast-audit.py css/styles.css
 A workflow at `.github/workflows/deploy.yml` publishes on every push to `master`.
 In the repo, go to **Settings → Pages → Build and deployment → Source** and choose
 **GitHub Actions**. The site is then served at
-`https://<user>.github.io/Vanguard-ETF-Portfolio-Simulator/`.
+`https://<user>.github.io/<repository-name>/`.
 
 There is no build step. The repository root is uploaded as-is — nothing is
 compiled, bundled or minified — so every asset path is relative and the site
@@ -134,16 +144,18 @@ works from any subpath.
 ---
 
 ## Known Limitations
-1. Does not adjust for inflation or tax implications.
-2. Limited asset coverage—missing options like REITs, emerging markets, or sector-specific ETFs.
-3. Simplistic risk assessment—advanced metrics like Sharpe ratio or VaR are not included.
+1. Asset returns are modelled as independent — no correlation matrix is applied.
+2. Returns are drawn from a normal distribution, so fat tails are underestimated.
+3. Limited asset coverage — no property, emerging markets, or sector splits.
+4. Simplistic risk assessment — advanced metrics like Sharpe ratio or VaR are not included.
+5. Exchange rate movement is not modelled. All figures are in a single currency.
 
 ---
 
 ## Future Enhancements
 1. Expand asset class options for greater diversification.
-2. Integrate real-time market data for live updates on ETF prices and FX rates.
-3. Add inflation-adjusted results and tax considerations for more accurate projections.
+2. Apply a correlation matrix instead of assuming independent returns.
+3. Model exchange rate movement for holdings priced in another currency.
 
 ---
 
