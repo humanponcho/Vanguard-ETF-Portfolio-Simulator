@@ -1,5 +1,5 @@
 /* ============================================================
-   Vanguard ETF Portfolio Simulator — visual system
+   Ballast — visual system
 
    Ported onto the shared paper/phosphor token system used by the
    questionnaire labs: a dual-scheme instrument panel, e-ink paper
@@ -98,11 +98,11 @@
      allowed here because every slice carries a direct percentage
      label and the legend names each holding in ink — identity is
      never colour alone. Keep it that way. */
-  --series-1: light-dark(#2a78d6, #3987e5);   /* VUAG   — blue    */
-  --series-2: light-dark(#1baf7a, #199e70);   /* VUCP   — aqua    */
-  --series-3: light-dark(#4a3aa7, #9085e9);   /* VUTY   — violet  */
-  --series-4: light-dark(#eda100, #c98500);   /* Gold   — gold    */
-  --series-5: light-dark(#e87ba4, #d55181);   /* Cash   — magenta */
+  --series-1: light-dark(#2a78d6, #3987e5);   /* Equity     — blue    */
+  --series-2: light-dark(#1baf7a, #199e70);   /* Corp bonds — aqua    */
+  --series-3: light-dark(#4a3aa7, #9085e9);   /* Treasuries — violet  */
+  --series-4: light-dark(#eda100, #c98500);   /* Gold       — gold    */
+  --series-5: light-dark(#e87ba4, #d55181);   /* Cash       — magenta */
 
   /* Label ink for text sitting ON a series fill. Fixed, not
      light-dark(): the ground here is the slice, which is mid-

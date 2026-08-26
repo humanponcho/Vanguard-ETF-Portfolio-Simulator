@@ -14,7 +14,7 @@ import re, sys, colorsys
 
 TEXT_MIN, SHAPE_MIN = 4.5, 3.0
 
-# ── PLAN — Vanguard ETF Portfolio Simulator ──────────────────
+# ── PLAN — Ballast ───────────────────────────────────────────
 # surface: opaque background tokens. --signal-note is listed as a surface
 #          because the two primary buttons fill with it and set their label
 #          to --black.

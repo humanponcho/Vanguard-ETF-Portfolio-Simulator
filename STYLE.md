@@ -1,4 +1,4 @@
-# Visual System — Vanguard ETF Portfolio Simulator
+# Visual System — Ballast
 
 How to write CSS and chart code for this project. It covers the design tokens,
 the colour rules, the chart palette, and the contrast floor every colour must
@@ -114,10 +114,10 @@ signal hues — a holding must never borrow the colour that means "gain".
 
 | Slot | Holding | Hue | Light | Dark |
 | --- | --- | --- | --- | --- |
-| 1 | VUAG | blue | `#2a78d6` | `#3987e5` |
-| 2 | VUCP | aqua | `#1baf7a` | `#199e70` |
-| 3 | VUTY | violet | `#4a3aa7` | `#9085e9` |
-| 4 | DigiGold | gold | `#eda100` | `#c98500` |
+| 1 | US Equity | blue | `#2a78d6` | `#3987e5` |
+| 2 | Corporate Bonds | aqua | `#1baf7a` | `#199e70` |
+| 3 | US Treasuries | violet | `#4a3aa7` | `#9085e9` |
+| 4 | Gold | gold | `#eda100` | `#c98500` |
 | 5 | Cash | magenta | `#e87ba4` | `#d55181` |
 
 Three rules govern this table.
