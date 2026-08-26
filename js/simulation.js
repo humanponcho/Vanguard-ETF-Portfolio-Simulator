@@ -1,3 +1,25 @@
+// One percentile convention for the whole page. The results table and the
+// overlay lines both go through this, so a line always ends exactly on the
+// figure the table reports for it. Values must already be sorted, ascending.
+function percentileOf(sortedValues, percentile) {
+  return sortedValues[Math.floor(percentile * sortedValues.length)];
+}
+
+// The value each percentile takes in every year of the run, read across the
+// simulated paths. This is an envelope, not a path: no single run traces it.
+// It is the honest shape, because it is measured from the runs themselves
+// rather than assumed from a formula.
+function percentileCurve(paths, percentile) {
+  const curve = [];
+
+  for (let year = 0; year < paths[0].length; year++) {
+    const valuesThisYear = paths.map(path => path[year].y).sort((a, b) => a - b);
+    curve.push({ x: year, y: percentileOf(valuesThisYear, percentile) });
+  }
+
+  return curve;
+}
+
 function generateSimulation() {
   refreshTheme();   // resolve the tokens for the scheme that is live right now
   d3.select("#simulationChart").selectAll("*").remove();
@@ -48,13 +70,25 @@ function generateSimulation() {
 
   const netPortfolioReturn = portfolioReturn - platformFee;
 
-  // Holdings are assumed uncorrelated, so the weighted variances simply add.
-  // See the Limitations note in the methodology section.
-  const portfolioVol = Math.sqrt(
-    ASSETS.reduce((sum, asset) => sum + Math.pow(weights[asset.key] * asset.volatility, 2), 0)
-  );
+  // Holdings move together to the degree CORRELATIONS says they do, so the
+  // cross terms are part of the sum. This is higher than treating them as
+  // independent, which is the honest direction.
+  const portfolioVol = portfolioVolatility(weights);
+
+  // netPortfolioReturn is the arithmetic mean and is what each simulated year
+  // is drawn from. It is not what the money grows at, because volatility drags
+  // the compound rate below it. The analysis panel reports both, so a reader
+  // comparing the headline rate against the projection sees why they differ.
+  // The projection itself no longer needs either — its lines are measured off
+  // the runs.
+  const netCompoundReturn = compoundReturn(netPortfolioReturn, portfolioVol);
 
   const netMonthlyContribution = monthlyContribution * (1 - transactionCost);
+
+  // Every figure the page shows is in today's money. The simulation itself runs
+  // in future money, because tax is charged on the future gain, not the real
+  // one. Deflating happens at the moment of display and nowhere else.
+  const inTodaysMoney = (value, year) => value / Math.pow(1 + inflationRate, year);
 
   const margin = { top: 20, right: 30, bottom: 40, left: 60 };
   const width = 900 - margin.left - margin.right;
@@ -111,13 +145,13 @@ function generateSimulation() {
 
   finalValues.sort((a, b) => a - b);
 
-  const p05 = finalValues[Math.floor(0.05 * finalValues.length)];
-  const p25 = finalValues[Math.floor(0.25 * finalValues.length)];
-  const p50 = finalValues[Math.floor(0.5 * finalValues.length)];
-  const p75 = finalValues[Math.floor(0.75 * finalValues.length)];
-  const p95 = finalValues[Math.floor(0.95 * finalValues.length)];
+  const p05 = percentileOf(finalValues, 0.05);
+  const p25 = percentileOf(finalValues, 0.25);
+  const p50 = percentileOf(finalValues, 0.50);
+  const p75 = percentileOf(finalValues, 0.75);
+  const p95 = percentileOf(finalValues, 0.95);
 
-  const maxY = Math.max(...finalValues) * 1.1;
+  const maxY = inTodaysMoney(Math.max(...finalValues), years) * 1.1;
   const y = d3.scaleLinear().domain([0, maxY]).range([height, 0]);
 
   svg.append("g")
@@ -132,11 +166,13 @@ function generateSimulation() {
     .attr("fill", THEME.g3)
     .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
-    .text(`Portfolio Value (${CURRENCY.symbol})`);
+    .text(`Portfolio Value (${CURRENCY.symbol}, today\u2019s money)`);
 
+  // Every path drawn through this generator is deflated as it is plotted, so
+  // the cloud and the three overlay lines share the axis unit.
   const line = d3.line()
     .x(d => x(d.x))
-    .y(d => y(d.y))
+    .y(d => y(inTodaysMoney(d.y, d.x)))
     .curve(d3.curveBasis);
 
   paths.forEach(path => {
@@ -151,92 +187,55 @@ function generateSimulation() {
       .attr("d", line);
   });
 
-  // Analytical median line (one point per year for a smooth curve)
-  const medianPath = [];
-  for (let i = 0; i <= years; i++) {
-    const v = startValue * Math.pow(1 + netPortfolioReturn, i) +
-      (netMonthlyContribution * 12 * ((Math.pow(1 + netPortfolioReturn, i) - 1) / netPortfolioReturn));
-    medianPath.push({ x: i, y: v });
-  }
+  // The three overlay lines are read straight off the simulated runs, one
+  // percentile per year. They previously used mu +/- 1.645 * sigma / sqrt(T),
+  // a formula that ignores the contribution stream, so the band it drew was
+  // the wrong width — about 9% of runs finished outside the 95th line rather
+  // than 5%. Measuring the runs removes the approximation entirely, and each
+  // line now ends exactly on the figure the results table reports.
+  const overlays = [
+    { percentile: 0.50, label: 'Median Outcome', stroke: THEME.g1, dash: '5,5', labelOffset: -10 },
+    { percentile: 0.95, label: 'Optimistic (95th percentile)', stroke: THEME.ok, dash: null, labelOffset: -10 },
+    { percentile: 0.05, label: 'Pessimistic (5th percentile)', stroke: THEME.err, dash: null, labelOffset: 20 }
+  ];
 
-  svg.append("path")
-    .datum(medianPath)
-    .attr("fill", "none")
-    .attr("stroke", THEME.g1)
-    .attr("stroke-width", 2)
-    .attr("stroke-dasharray", "5,5")
-    .attr("d", line);
+  overlays.forEach(overlay => {
+    const curve = percentileCurve(paths, overlay.percentile);
 
-  svg.append("text")
-    .attr("x", x(years))
-    .attr("text-anchor", "end")
-    .attr("dy", "-0.4em")
-    .attr("y", y(medianPath[medianPath.length - 1].y) - 10)
-    .attr("fill", THEME.g2)
-    .style("font-family", "var(--mono)")
-    .text("Median Outcome");
+    const drawn = svg.append("path")
+      .datum(curve)
+      .attr("fill", "none")
+      .attr("stroke", overlay.stroke)
+      .attr("stroke-width", 2)
+      .attr("d", line);
 
-  // Analytical 95th percentile line
-  const p95LineReturn = netPortfolioReturn + 1.645 * portfolioVol / Math.sqrt(years);
-  const p95LinePath = [];
-  for (let i = 0; i <= years; i++) {
-    const v = startValue * Math.pow(1 + p95LineReturn, i) +
-      (netMonthlyContribution * 12 * ((Math.pow(1 + p95LineReturn, i) - 1) / p95LineReturn));
-    p95LinePath.push({ x: i, y: v });
-  }
+    if (overlay.dash) drawn.attr("stroke-dasharray", overlay.dash);
 
-  svg.append("path")
-    .datum(p95LinePath)
-    .attr("fill", "none")
-    .attr("stroke", THEME.ok)
-    .attr("stroke-width", 2)
-    .attr("d", line);
+    svg.append("text")
+      .attr("x", x(years))
+      .attr("text-anchor", "end")
+      .attr("dy", "-0.4em")
+      .attr("y", y(inTodaysMoney(curve[curve.length - 1].y, years)) + overlay.labelOffset)
+      .attr("fill", THEME.g2)
+      .style("font-family", "var(--mono)")
+      .text(overlay.label);
+  });
 
-  svg.append("text")
-    .attr("x", x(years))
-    .attr("text-anchor", "end")
-    .attr("dy", "-0.4em")
-    .attr("y", y(p95LinePath[p95LinePath.length - 1].y) - 10)
-    .attr("fill", THEME.g2)
-    .style("font-family", "var(--mono)")
-    .text("Optimistic (95th percentile)");
+  const setValue = (id, nominalValue) => {
+    document.getElementById(id).textContent = formatMoney(inTodaysMoney(nominalValue, years));
+  };
 
-  // Analytical 5th percentile line
-  const p05LineReturn = netPortfolioReturn - 1.645 * portfolioVol / Math.sqrt(years);
-  const safeP05Return = p05LineReturn || 0.001;
-  const p05LinePath = [];
-  for (let i = 0; i <= years; i++) {
-    const v = startValue * Math.pow(1 + safeP05Return, i) +
-      (netMonthlyContribution * 12 * ((Math.pow(1 + safeP05Return, i) - 1) / safeP05Return));
-    p05LinePath.push({ x: i, y: v });
-  }
+  setValue('p95Value', p95);
+  setValue('p75Value', p75);
+  setValue('p50Value', p50);
+  setValue('p25Value', p25);
+  setValue('p05Value', p05);
 
-  svg.append("path")
-    .datum(p05LinePath)
-    .attr("fill", "none")
-    .attr("stroke", THEME.err)
-    .attr("stroke-width", 2)
-    .attr("d", line);
-
-  svg.append("text")
-    .attr("x", x(years))
-    .attr("text-anchor", "end")
-    .attr("dy", "-0.4em")
-    .attr("y", y(p05LinePath[p05LinePath.length - 1].y) + 20)
-    .attr("fill", THEME.g2)
-    .style("font-family", "var(--mono)")
-    .text("Pessimistic (5th percentile)");
-
-  document.getElementById('p95Value').textContent = formatMoney(p95);
-  document.getElementById('p75Value').textContent = formatMoney(p75);
-  document.getElementById('p50Value').textContent = formatMoney(p50);
-  document.getElementById('p25Value').textContent = formatMoney(p25);
-  document.getElementById('p05Value').textContent = formatMoney(p05);
-
-  function calcRealAnnReturn(finalValue, yrs, start, monthlyC, inflation) {
-    const total = start + (monthlyC * 12 * yrs);
-    const nominal = Math.pow(finalValue / total, 1 / yrs) - 1;
-    return (1 + nominal) / (1 + inflation) - 1;
+  // The return the investor actually earned on the money, timed as it was
+  // actually paid in, then stripped of inflation.
+  function realAnnualReturn(finalValue) {
+    const nominal = moneyWeightedReturn(finalValue, years, startValue, monthlyContribution * 12);
+    return (1 + nominal) / (1 + inflationRate) - 1;
   }
 
   // A real annualised return is the one figure here that can be negative,
@@ -249,11 +248,11 @@ function generateSimulation() {
     el.className = value < 0 ? 'figure-loss' : 'figure-gain';
   };
 
-  setReturn('p95Return', calcRealAnnReturn(p95, years, startValue, netMonthlyContribution, inflationRate));
-  setReturn('p75Return', calcRealAnnReturn(p75, years, startValue, netMonthlyContribution, inflationRate));
-  setReturn('p50Return', calcRealAnnReturn(p50, years, startValue, netMonthlyContribution, inflationRate));
-  setReturn('p25Return', calcRealAnnReturn(p25, years, startValue, netMonthlyContribution, inflationRate));
-  setReturn('p05Return', calcRealAnnReturn(p05, years, startValue, netMonthlyContribution, inflationRate));
+  setReturn('p95Return', realAnnualReturn(p95));
+  setReturn('p75Return', realAnnualReturn(p75));
+  setReturn('p50Return', realAnnualReturn(p50));
+  setReturn('p25Return', realAnnualReturn(p25));
+  setReturn('p05Return', realAnnualReturn(p05));
 
   const taxableGains = Math.max(0, p50 - totalContributions);
   const capitalGainsTax = Math.round(taxableGains * cgtRate);
@@ -278,8 +277,9 @@ function generateSimulation() {
   document.getElementById('summaryText').innerHTML = `
     <h3>Capital Gains Tax Estimate</h3>
     <p>Based on median outcome at a <strong>${(cgtRate * 100).toFixed(0)}%</strong> CGT rate:</p>
-    <p>Estimated gains: <strong>${formatMoney(taxableGains)}</strong></p>
-    <p>Estimated CGT: <strong>${formatMoney(capitalGainsTax)}</strong></p>
+    <p>Estimated gains: <strong>${formatMoney(inTodaysMoney(taxableGains, years))}</strong></p>
+    <p>Estimated CGT: <strong>${formatMoney(inTodaysMoney(capitalGainsTax, years))}</strong></p>
+    <p class="footnote">Tax is charged on the gain in future money, so that is what the rate is applied to. Both figures are then shown in today's money, like every other figure on this page.</p>
 
     <h3>Current Asset Allocation</h3>
     <ul>
@@ -288,8 +288,9 @@ function generateSimulation() {
 
     <h3>Risk and Return Profile</h3>
     <ul>
-      <li>Expected Annual Return (net of fees &amp; withholding): <strong>${(netPortfolioReturn * 100).toFixed(1)}%</strong></li>
-      <li>Expected Volatility: <strong>${(portfolioVol * 100).toFixed(1)}%</strong></li>
+      <li>Expected Annual Return, arithmetic mean (net of fees &amp; withholding): <strong>${(netPortfolioReturn * 100).toFixed(1)}%</strong></li>
+      <li>Compound Growth Rate, what the money actually grows at: <strong>${(netCompoundReturn * 100).toFixed(1)}%</strong></li>
+      <li>Expected Volatility (correlated): <strong>${(portfolioVol * 100).toFixed(1)}%</strong></li>
       <li>Dividend Withholding Rate: <strong>${(dividendWithholdingRate * 100).toFixed(0)}%</strong></li>
       <li>Inflation Rate: <strong>${(inflationRate * 100).toFixed(1)}%</strong></li>
       <li>Risk Profile: <strong>${riskProfile}</strong></li>
@@ -308,7 +309,7 @@ function generateSimulation() {
     </ul>
   `;
 
-  renderMonteCarloChart(finalValues);
+  renderMonteCarloChart(finalValues.map(v => inTodaysMoney(v, years)));
 }
 
 function renderMonteCarloChart(finalValues) {
@@ -347,7 +348,7 @@ function renderMonteCarloChart(finalValues) {
     .attr("fill", THEME.g3)
     .style("font-family", "var(--mono)")
     .style("text-anchor", "middle")
-    .text(`Final Portfolio Value (${CURRENCY.symbol})`);
+    .text(`Final Portfolio Value (${CURRENCY.symbol}, today\u2019s money)`);
 
   const histogram = d3.histogram()
     .value(d => d)

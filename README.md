@@ -39,15 +39,27 @@ fund, provider or product.
 
 ### **4. Risk and Return Analysis**
 - With the default allocation and a 15% withholding rate, the model reports:
-  - Expected annual return, net of fees and withholding: **6.2%**.
-  - Expected volatility: **8.6%**.
+  - Expected annual return, net of fees and withholding: **4.8%**. This is an
+    arithmetic mean — the average of the yearly returns. It is what each
+    simulated year is drawn from.
+  - Compound growth rate: **4.5%** nominal, or **1.9%** real at the default 2.5%
+    inflation. This is what the money actually grows at, and it is what every
+    projected outcome on the page uses.
+  - Expected volatility: **8.7%**. Calculated from the full covariance sum, so
+    holdings that move together add risk instead of cancelling it out.
 - Categorizes portfolio risk from the US Equity share: 70% or more is
   "Aggressive", 50% or more is "Moderate", below that is "Conservative".
 
 ### **5. Tax and Inflation**
 - Dividend withholding tax reduces the gross return of the distributing holdings.
-- Capital gains tax is estimated on the median outcome at a rate you set.
-- Displayed annualised returns are deflated to real terms.
+- Capital gains tax is estimated on the median outcome at a rate you set. The
+  rate is applied to the gain in future money, because that is how tax works.
+- **Every figure on the page is shown in today's money** — the results table,
+  both charts and the tax estimate. The simulation runs in future money and
+  deflates only at the point of display.
+- The annualised return is a money-weighted return (an internal rate of return),
+  so it respects when each contribution was paid, then it is deflated to real
+  terms.
 
 ---
 
@@ -144,18 +156,22 @@ works from any subpath.
 ---
 
 ## Known Limitations
-1. Asset returns are modelled as independent — no correlation matrix is applied.
+1. Correlations are fixed long-run averages, set in `CORRELATIONS` in
+   [js/assets.js](js/assets.js). Real correlations rise in a crash, so drawdown
+   risk is still understated.
 2. Returns are drawn from a normal distribution, so fat tails are underestimated.
-3. Limited asset coverage — no property, emerging markets, or sector splits.
-4. Simplistic risk assessment — advanced metrics like Sharpe ratio or VaR are not included.
-5. Exchange rate movement is not modelled. All figures are in a single currency.
+3. Contributions are held flat and are not raised with inflation.
+4. Limited asset coverage — no property, emerging markets, or sector splits.
+5. Simplistic risk assessment — advanced metrics like Sharpe ratio or VaR are not included.
+6. Exchange rate movement is not modelled. All figures are in a single currency.
 
 ---
 
 ## Future Enhancements
 1. Expand asset class options for greater diversification.
-2. Apply a correlation matrix instead of assuming independent returns.
+2. Raise contributions with inflation, as an option.
 3. Model exchange rate movement for holdings priced in another currency.
+4. Draw returns from a fat-tailed distribution instead of a normal one.
 
 ---
 

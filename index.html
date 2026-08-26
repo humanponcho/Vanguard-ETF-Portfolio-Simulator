@@ -69,7 +69,7 @@
 
       <div class="control-group">
         <label for="inflationRateInput">Inflation Rate (%):</label>
-        <input type="number" id="inflationRateInput" min="0" max="10" step="0.1" value="2">
+        <input type="number" id="inflationRateInput" min="0" max="10" step="0.1" value="2.5">
       </div>
 
       <button id="runSimulation">Run Simulation</button>
@@ -84,8 +84,8 @@
       <table>
         <tr>
           <th>Percentile</th>
-          <th>Final Portfolio Value</th>
-          <th>Annualized Return</th>
+          <th>Final Portfolio Value (today&rsquo;s money)</th>
+          <th>Annualized Return (money-weighted)</th>
         </tr>
         <tr>
           <td>95th Percentile (Optimistic)</td>
@@ -125,7 +125,7 @@
       <h3>Methodology and Assumptions</h3>
 
       <h4>Monte Carlo Simulation</h4>
-      <p>The simulator runs <em>N</em> independent annual return paths. Each year's return is drawn from a normal distribution using the Box-Muller transform, parameterised by the portfolio's blended expected return and volatility. Monthly contributions are added annually, net of transaction costs.</p>
+      <p>The simulator runs <em>N</em> independent annual return paths. Each year's return is drawn from a normal distribution using the Box-Muller transform, parameterised by the portfolio's blended expected return and its correlated volatility. Monthly contributions are added annually, net of transaction costs.</p>
 
       <h4>Asset Assumptions</h4>
       <!-- Rows rendered from ASSETS by renderAssumptionsTable() in js/sliders.js. -->
@@ -135,26 +135,41 @@
         </thead>
         <tbody id="assumptionsTable"></tbody>
       </table>
+      <p>These are forward-looking estimates, not long-run historical averages. Bond returns start from current yields, less expected credit loss. Gold pays no income, so it is modelled to hold its purchasing power and no more.</p>
+      <p><strong>Expected Return is an arithmetic mean.</strong> It is the average of the yearly returns, not the rate the holding compounds at. Each simulated year is drawn from a normal distribution centred on this figure, so the arithmetic mean is the correct input to the simulation. The rate money actually grows at over many years is lower, by roughly half the variance (volatility squared &divide; 2) &mdash; about 1.4 points a year for US Equity. The analysis panel reports both figures, and every projected outcome on this page uses the compound rate.</p>
+
+      <h4>Correlation</h4>
+      <p>Correlation measures how far two holdings move together. A value of 1 means they rise and fall as one, 0 means they move independently, and -1 means they move in opposite directions. It decides whether spreading money across holdings actually lowers risk.</p>
+      <p>Portfolio volatility is calculated from the full covariance sum &mdash; each holding's weighted variance, plus a cross term for every pair. The pairs are set in <code>CORRELATIONS</code> in <code>js/assets.js</code>. Corporate Bonds and US Treasuries are strongly related (0.85) because they carry the same interest-rate risk. US Equity and Corporate Bonds are moderately related (0.35) because company credit weakens when shares fall. Any pair not listed is treated as 0.</p>
+      <p>These are long-run averages. In a crash, most correlations move toward 1, which is the moment spreading your money helps least. Read the volatility shown as a floor, not a ceiling.</p>
 
       <h4>Fee Deductions</h4>
       <p>Expense ratios are deducted from each asset's gross return before blending. A platform fee of 0.25% p.a. is then deducted from the blended portfolio return. Transaction costs of 0.10% are applied to each monthly contribution.</p>
 
       <h4>Dividend Withholding Tax</h4>
-      <p>Corporate Bonds and US Treasuries are modelled as distributing holdings — they pay income out rather than reinvesting it. The withholding rate you set is applied as a flat reduction to their gross returns before blending. For example, a 15% withholding rate reduces a 6.0% gross return to 5.1% net. Accumulating holdings are unaffected.</p>
+      <p>Corporate Bonds and US Treasuries are modelled as distributing holdings — they pay income out rather than reinvesting it. The withholding rate you set is applied as a flat reduction to their gross returns before blending. For example, a 15% withholding rate reduces a 5.0% gross return to 4.25% net. Accumulating holdings are unaffected.</p>
 
       <h4>Capital Gains Tax</h4>
       <p>CGT is estimated at the flat rate you specify, applied to simulated gains above total contributions at the end of the horizon (median outcome). No tax-advantaged accounts (401(k), IRA), annual exemptions, or tax-loss harvesting are modelled.</p>
 
       <h4>Inflation Adjustment</h4>
-      <p>Inflation is applied as a post-hoc deflator to the displayed annualised real returns. Contributions are not inflation-adjusted in the simulation itself.</p>
+      <p><strong>Every figure shown on this page is in today's money.</strong> The results table, both charts and the tax estimate are all deflated at the rate you set, so a dollar shown here buys what a dollar buys today.</p>
+      <p>The simulation itself runs in future money, because tax is charged on the future gain and not on the real one. Deflating happens only at the moment a figure is displayed.</p>
+      <p>Contributions are held flat in future money. If you expect to raise your contribution with inflation, the projection understates the outcome.</p>
+
+      <h4>Annualised Return</h4>
+      <p>The return column is a money-weighted return, also called an internal rate of return: the single rate that makes every cash flow balance. It respects when each contribution was actually paid. A dollar contributed in the final year has had no time to grow, and this measure accounts for that. The figure is then deflated to a real return at the inflation rate you set.</p>
 
       <h4>Percentile Overlay Lines</h4>
-      <p>The three coloured overlay lines are analytical growth curves, not sampled paths. The median uses the net portfolio return compounded annually. The 95th/5th lines use µ ± 1.645σ/√T as a first-order approximation of the expected return distribution. The results table percentiles are computed directly from simulated final values.</p>
+      <p>The three coloured overlay lines are measured from the simulated runs. For each year, the model sorts every run by value and reads off the 5th, 50th and 95th percentile. No formula is involved, so the band is the width the runs actually produce.</p>
+      <p>Each line is an envelope, not a path. No single run traces one of them. A run that sits at the 95th percentile in year 5 will usually sit somewhere else in year 6.</p>
+      <p>Because the lines and the results table share one percentile convention, each line ends exactly on the figure the table reports for it.</p>
 
       <h4>Limitations</h4>
       <ul>
-        <li>Asset returns are modelled as independent — no correlation matrix is applied.</li>
+        <li>Correlations are fixed long-run averages. Real correlations rise in a crash, so drawdown risk is still understated.</li>
         <li>Returns are normally distributed — fat tails and tail risk are underestimated.</li>
+        <li>Contributions are held flat and are not raised with inflation.</li>
         <li>No sequence-of-returns risk on withdrawals is modelled.</li>
         <li>Tax estimates are simplified flat-rate calculations and do not constitute financial advice.</li>
       </ul>
