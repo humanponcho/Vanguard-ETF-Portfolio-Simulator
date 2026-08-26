@@ -1,35 +1,36 @@
 {
+  "_comment": "Reference copy of the model assumptions. The live values the page uses are in js/assets.js; nothing fetches this file. Keep the two in step or delete this file.",
   "assets": {
-    "VUAG": {
-      "name": "S&P 500 UCITS ETF (Accumulating)",
+    "equity": {
+      "name": "US Equity",
       "expectedAnnualReturn": 0.09,
       "annualVolatility": 0.18,
       "expenseRatio": 0.0007,
       "distributing": false
     },
-    "VUCP": {
-      "name": "USD Corporate Bond UCITS ETF (Distributing)",
+    "corpBond": {
+      "name": "Corporate Bonds",
       "expectedAnnualReturn": 0.06,
       "annualVolatility": 0.08,
       "expenseRatio": 0.0010,
       "distributing": true
     },
-    "VUTY": {
-      "name": "USD Treasury Bond UCITS ETF (Distributing)",
+    "govBond": {
+      "name": "US Treasuries",
       "expectedAnnualReturn": 0.05,
       "annualVolatility": 0.07,
       "expenseRatio": 0.0009,
       "distributing": true
     },
-    "DigiGold": {
-      "name": "DigiGold (GBP)",
+    "gold": {
+      "name": "Gold",
       "expectedAnnualReturn": 0.10,
       "annualVolatility": 0.30,
       "expenseRatio": 0.0050,
       "distributing": false
     },
-    "Cash": {
-      "name": "Cash (GBP)",
+    "cash": {
+      "name": "Cash",
       "expectedAnnualReturn": 0.02,
       "annualVolatility": 0.01,
       "expenseRatio": 0,
@@ -38,9 +39,7 @@
   },
   "fees": {
     "platformFeeAnnual": 0.0025,
-    "transactionCostPerContribution": 0.0010,
-    "digigoldBuyFee": 0.0050,
-    "digigoldSellFee": 0.0100
+    "transactionCostPerContribution": 0.0010
   },
   "notes": "Return and volatility estimates are forward-looking assumptions based on long-run historical data. They are not guaranteed and do not constitute financial advice."
 }
